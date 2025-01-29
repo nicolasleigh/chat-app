@@ -1,6 +1,7 @@
 "use client";
 
 import LoadingLogo from "@/components/shared/LoadingLogo";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClerkProvider, SignInButton, useAuth } from "@clerk/nextjs";
 import { Authenticated, AuthLoading, ConvexReactClient, Unauthenticated } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
@@ -13,7 +14,9 @@ export default function Providers({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        <Authenticated>{children}</Authenticated>
+        <Authenticated>
+          <TooltipProvider>{children}</TooltipProvider>
+        </Authenticated>
         <Unauthenticated>
           <SignInButton />
         </Unauthenticated>
