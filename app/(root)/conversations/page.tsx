@@ -1,3 +1,5 @@
+import ConversationFallback from "@/components/shared/conversation/ConversationFallback";
+
 export default function ConversationPage() {
-  return <div>ConversationPage</div>;
+  return <ConversationFallback />;
 }

@@ -1,5 +1,11 @@
+import ItemList from "@/components/shared/item-list/ItemList";
 import { ReactNode } from "react";
 
 export default function ConversationsLayout({ children }: { children: ReactNode }) {
-  return <div>{children}</div>;
+  return (
+    <>
+      <ItemList title='Conversations'>Conversation page</ItemList>
+      {children}
+    </>
+  );
 }
