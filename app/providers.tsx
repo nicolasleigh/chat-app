@@ -1,6 +1,7 @@
 "use client";
 
 import LoadingLogo from "@/components/shared/LoadingLogo";
+import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ui/theme/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClerkProvider, SignInButton, useAuth } from "@clerk/nextjs";
@@ -18,6 +19,7 @@ export default function Providers({ children }: { children: ReactNode }) {
         <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
           <Authenticated>
             <TooltipProvider>{children}</TooltipProvider>
+            <Toaster richColors />
           </Authenticated>
           <Unauthenticated>
             <SignInButton />
