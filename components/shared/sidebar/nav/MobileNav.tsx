@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme/theme-toggle";
@@ -27,6 +28,9 @@ export default function MobileNav() {
                         {path.icon}
                       </Button>
                     </TooltipTrigger>
+                    {path.count ? (
+                      <Badge className='absolute left-6 bottom-6 px-2 rounded-full'>{path.count}</Badge>
+                    ) : null}
                     <TooltipContent>
                       <p>{path.name}</p>
                     </TooltipContent>
