@@ -6,12 +6,13 @@ import { useQuery } from "convex/react";
 import { Loader2 } from "lucide-react";
 import { ReactNode } from "react";
 import DMConversationItem from "./_components/DMConversationItem";
+import CreateGroupDialog from "./_components/CreateGroupDialog";
 
 export default function ConversationsLayout({ children }: { children: ReactNode }) {
   const conversations = useQuery(api.conversations.get);
   return (
     <>
-      <ItemList title='Conversations'>
+      <ItemList title='Conversations' action={<CreateGroupDialog />}>
         {conversations ? (
           conversations.length === 0 ? (
             <p className='w-full h-full flex items-center justify-center'>No conversations found</p>
