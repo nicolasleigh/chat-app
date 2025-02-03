@@ -23,6 +23,8 @@ export default function ConversationsLayout({ children }: { children: ReactNode 
                   id={conv.conversation._id}
                   username={conv.otherMember?.username || ""}
                   imageUrl={conv.otherMember?.imageUrl || ""}
+                  lastMessageContent={conv.lastMessage?.content}
+                  lastMessageSender={conv.lastMessage?.sender}
                 />
               );
             })
