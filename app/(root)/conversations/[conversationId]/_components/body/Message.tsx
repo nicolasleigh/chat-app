@@ -44,7 +44,7 @@ export default function Message({
             "rounded-bl-none": !lastByUser && !fromCurrentUser,
           })}
         >
-          {type === "text" ? <p className='text-wrap break-words whitespace-pre-wrap'>{content}</p> : null}
+          {type === "text" ? <p className='text-wrap break-words whitespace-pre-wrap break-all'>{content}</p> : null}
           <p
             className={cn("text-xs flex w-full my-1", {
               "text-primary-foreground justify-end": fromCurrentUser,
