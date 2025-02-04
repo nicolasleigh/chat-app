@@ -10,6 +10,7 @@ import Body from "./_components/body/Body";
 import ChatInput from "./_components/input/ChatInput";
 import React, { useState } from "react";
 import RemoveFriendDialog from "./_components/dialogs/RemoveFriendDialog";
+import DeleteGroupDialog from "./_components/dialogs/DeleteGroupDialog";
 
 type Props = {
   params: Promise<{ conversationId: Id<"conversations"> }>;
@@ -37,9 +38,14 @@ export default function ConversationPage({ params }: Props) {
         open={removeFriendDialogOpen}
         setOpen={setRemoveFriendDialogOpen}
       />
+      <DeleteGroupDialog
+        conversationId={conversationId}
+        open={deleteGroupDialogOpen}
+        setOpen={setDeleteGroupDialogOpen}
+      />
       <Header
-        name={conversation.isGroup ? conversation.name : conversation.otherMember.username || ""}
-        imageUrl={conversation.isGroup ? undefined : conversation.otherMember.imageUrl}
+        name={(conversation.isGroup ? conversation.name : conversation.otherMember?.username) || ""}
+        imageUrl={conversation.isGroup ? undefined : conversation.otherMember?.imageUrl}
         options={
           conversation.isGroup
             ? [
