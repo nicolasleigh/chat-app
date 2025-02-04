@@ -57,7 +57,17 @@ export default function ConversationPage({ params }: Props) {
             : [{ label: "Remove friend", destructive: true, onClick: () => setRemoveFriendDialogOpen(true) }]
         }
       />
-      <Body />
+      <Body
+        members={
+          conversation.isGroup
+            ? conversation.otherMembers
+              ? conversation.otherMembers
+              : []
+            : conversation.otherMember
+              ? [conversation.otherMember]
+              : []
+        }
+      />
       <ChatInput />
     </ConversationContainer>
   );
