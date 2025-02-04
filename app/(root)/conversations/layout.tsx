@@ -26,6 +26,7 @@ export default function ConversationsLayout({ children }: { children: ReactNode 
                   name={conv.conversation.name || ""}
                   lastMessageContent={conv.lastMessage?.content}
                   lastMessageSender={conv.lastMessage?.sender}
+                  unseenCount={conv.unseenCount}
                 />
               ) : (
                 <DMConversationItem
@@ -35,6 +36,7 @@ export default function ConversationsLayout({ children }: { children: ReactNode 
                   imageUrl={conv.otherMember?.imageUrl || ""}
                   lastMessageContent={conv.lastMessage?.content}
                   lastMessageSender={conv.lastMessage?.sender}
+                  unseenCount={conv.unseenCount}
                 />
               );
             })
