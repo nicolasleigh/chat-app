@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: ["img.clerk.com", "utfs.io"],
+  },
+  // images: {
+  //   remotePatterns: [
+  //     {
+  //       protocol: "https",
+  //       hostname: "w557yaqfp2.ufs.sh",
+  //       pathname: "/f/*",
+  //     },
+  //   ],
+  // },
   async redirects() {
     return [
       {

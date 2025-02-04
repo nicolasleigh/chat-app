@@ -2,6 +2,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ReactNode } from "react";
+import ImagePreview from "./ImagePreview";
+import FilePreview from "./FilePreview";
 
 type Props = {
   fromCurrentUser: boolean;
@@ -48,6 +50,8 @@ export default function Message({
           })}
         >
           {type === "text" ? <p className='text-wrap break-words whitespace-pre-wrap break-all'>{content}</p> : null}
+          {type === "imageUploader" ? <ImagePreview urls={content} /> : null}
+          {type === "file" ? <FilePreview url={content[0]} /> : null}
           <p
             className={cn("text-xs flex w-full my-1", {
               "text-primary-foreground justify-end": fromCurrentUser,
