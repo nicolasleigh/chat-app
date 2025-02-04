@@ -8,7 +8,7 @@ type Props = {
   type: "imageUploader" | "file";
 };
 
-export default function uploader({ type, onChange }: Props) {
+export default function Uploader({ type, onChange }: Props) {
   return (
     <UploadDropzone
       endpoint={type}

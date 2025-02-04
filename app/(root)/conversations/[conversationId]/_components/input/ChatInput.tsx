@@ -14,7 +14,7 @@ import { z } from "zod";
 import TextareaAutosize from "react-textarea-autosize";
 import { Button } from "@/components/ui/button";
 import { SendHorizonal } from "lucide-react";
-import MessageActionsProvider from "./MessageActionsProvider";
+import MessageActionsPopover from "./MessageActionsProvider";
 import { useTheme } from "next-themes";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 
@@ -102,7 +102,7 @@ export default function ChatInput() {
         />
       </div>
       <div className='flex gap-2 items-end w-full'>
-        <MessageActionsProvider setEmojiPickerOpen={setEmojiPickerOpen} />
+        <MessageActionsPopover setEmojiPickerOpen={setEmojiPickerOpen} />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className='flex gap-2 items-end w-full'>
             <FormField
