@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { api } from "@/convex/_generated/api";
@@ -7,16 +8,15 @@ import useConversation from "@/hooks/useConversation";
 import useMutationState from "@/hooks/useMutationState";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ConvexError } from "convex/values";
-import { useEffect, useRef, useState } from "react";
+import EmojiPicker, { Theme } from "emoji-picker-react";
+import { SendHorizonal } from "lucide-react";
+import { useTheme } from "next-themes";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
-import TextareaAutosize from "react-textarea-autosize";
-import { Button } from "@/components/ui/button";
-import { SendHorizonal } from "lucide-react";
 import MessageActionsPopover from "./MessageActionsProvider";
-import { useTheme } from "next-themes";
-import EmojiPicker, { Theme } from "emoji-picker-react";
 
 const chatMessageSchema = z.object({
   content: z.string().min(1, {
@@ -26,7 +26,7 @@ const chatMessageSchema = z.object({
 
 export default function ChatInput() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const emojiPickerRef = useRef<any>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
   const { conversationId } = useConversation();
@@ -42,7 +42,7 @@ export default function ChatInput() {
 
   const content = form.watch("content", "");
 
-  const handleInputChange = (event: any) => {
+  const handleInputChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const { value, selectionStart } = event.target;
 
     if (selectionStart !== null) {
@@ -76,7 +76,7 @@ export default function ChatInput() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
         setEmojiPickerOpen(false);
       }
     };
@@ -123,7 +123,7 @@ export default function ChatInput() {
                         maxRows={3}
                         {...field}
                         onChange={handleInputChange}
-                        onClick={handleInputChange}
+                        // onClick={handleInputChange}
                         placeholder='Type a message...'
                         className='min-h-full w-full resize-none border-0 outline-0 bg-card text-card-foreground placeholder:text-muted-foreground'
                       />

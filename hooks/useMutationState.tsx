@@ -1,11 +1,12 @@
 import { useMutation } from "convex/react";
+import { FunctionReference } from "convex/server";
 import { useState } from "react";
 
-export default function useMutationState(mutationToRun: any) {
+export default function useMutationState(mutationToRun: FunctionReference<"mutation">) {
   const [pending, setPending] = useState(false);
   const mutationFn = useMutation(mutationToRun);
 
-  const mutate = (payload: any) => {
+  const mutate = (payload: unknown) => {
     setPending(true);
 
     return mutationFn(payload)

@@ -14,7 +14,7 @@ type Props = {
   members: {
     lastSeenMessageId?: Id<"messages">;
     username?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }[];
   callType: "audio" | "video" | null;
   setCallType: Dispatch<SetStateAction<"audio" | "video" | null>>;
@@ -67,7 +67,7 @@ export default function Body({ members, callType, setCallType }: Props) {
   const getSeenMessage = (messageId: Id<"messages">) => {
     const seenUsers = members
       .filter((member) => member.lastSeenMessageId === messageId)
-      .map((user) => user.username.split(" ")[0]);
+      .map((user) => (user.username ? user.username.split(" ")[0] : ""));
 
     if (seenUsers.length === 0) return undefined;
 
