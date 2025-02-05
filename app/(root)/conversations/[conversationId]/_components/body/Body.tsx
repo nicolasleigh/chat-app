@@ -6,18 +6,21 @@ import useConversation from "@/hooks/useConversation";
 import { useQuery } from "convex/react";
 import Message from "./Message";
 import useMutationState from "@/hooks/useMutationState";
-import { useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import CallRoom from "./CallRoom";
 
 type Props = {
   members: {
     lastSeenMessageId?: Id<"messages">;
     username?: string;
     [key: string]: any;
-  };
+  }[];
+  callType: "audio" | "video" | null;
+  setCallType: Dispatch<SetStateAction<"audio" | "video" | null>>;
 };
 
-export default function Body({ members }: Props) {
+export default function Body({ members, callType, setCallType }: Props) {
   const { conversationId } = useConversation();
 
   const messages = useQuery(api.messages.get, {
@@ -73,25 +76,33 @@ export default function Body({ members }: Props) {
 
   return (
     <div className='flex-1 w-full flex overflow-y-scroll flex-col-reverse gap-2 p-3 no-scrollbar'>
-      {messages?.map(({ message, senderImage, senderName, isCurrentUser }, index) => {
-        const lastByUser = messages[index - 1]?.message.senderId === messages[index].message.senderId;
+      {!callType ? (
+        messages?.map(({ message, senderImage, senderName, isCurrentUser }, index) => {
+          const lastByUser = messages[index - 1]?.message.senderId === messages[index].message.senderId;
 
-        const seenMessage = isCurrentUser ? getSeenMessage(message._id) : undefined;
+          const seenMessage = isCurrentUser ? getSeenMessage(message._id) : undefined;
 
-        return (
-          <Message
-            key={message._id}
-            fromCurrentUser={isCurrentUser}
-            senderImage={senderImage}
-            senderName={senderName}
-            lastByUser={lastByUser}
-            content={message.content}
-            createdAt={message._creationTime}
-            type={message.type}
-            seen={seenMessage}
-          />
-        );
-      })}
+          return (
+            <Message
+              key={message._id}
+              fromCurrentUser={isCurrentUser}
+              senderImage={senderImage}
+              senderName={senderName}
+              lastByUser={lastByUser}
+              content={message.content}
+              createdAt={message._creationTime}
+              type={message.type}
+              seen={seenMessage}
+            />
+          );
+        })
+      ) : (
+        <CallRoom
+          audio={callType === "audio" || callType === "video"}
+          video={callType === "video"}
+          handleDisconnect={() => setCallType(null)}
+        />
+      )}
     </div>
   );
 }

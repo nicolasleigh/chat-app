@@ -56,6 +56,7 @@ export default function ConversationPage({ params }: Props) {
               ]
             : [{ label: "Remove friend", destructive: true, onClick: () => setRemoveFriendDialogOpen(true) }]
         }
+        setCallType={setCallType}
       />
       <Body
         members={
@@ -67,6 +68,8 @@ export default function ConversationPage({ params }: Props) {
               ? [conversation.otherMember]
               : []
         }
+        callType={callType}
+        setCallType={setCallType}
       />
       <ChatInput />
     </ConversationContainer>
