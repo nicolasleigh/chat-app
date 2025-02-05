@@ -4,7 +4,7 @@ import { getUserByClerkId } from "./_utils";
 
 export const get = query({
   args: {},
-  handler: async (ctx, args) => {
+  handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
@@ -39,7 +39,7 @@ export const get = query({
 
 export const count = query({
   args: {},
-  handler: async (ctx, args) => {
+  handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
