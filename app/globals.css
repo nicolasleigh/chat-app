@@ -88,3 +88,8 @@ body {
     scrollbar-width: none; /* Firefox */
   }
 }
+
+.cl-footer,
+.cl-userButtonPopoverFooter {
+  display: none;
+}

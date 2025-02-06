@@ -1,6 +1,7 @@
 "use client";
 
 import LoadingLogo from "@/components/shared/LoadingLogo";
+import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ui/theme/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +23,11 @@ export default function Providers({ children }: { children: ReactNode }) {
             <Toaster richColors />
           </Authenticated>
           <Unauthenticated>
-            <SignInButton />
+            <SignInButton mode='modal'>
+              <Button className='block mx-auto mt-60' variant='outline'>
+                Click to sign in
+              </Button>
+            </SignInButton>
           </Unauthenticated>
           <AuthLoading>
             <LoadingLogo />
