@@ -53,7 +53,7 @@ export default function Message({
           {type === "text" ? <p className='text-wrap break-words whitespace-pre-wrap break-all'>{content}</p> : null}
           {type === "imageUploader" ? <ImagePreview urls={content} /> : null}
           {type === "file" ? <FilePreview url={content[0]} /> : null}
-          {type === "call" ? <Badge variant='secondary'>Joined Call</Badge> : null}
+          {type === "call" ? <Badge className='bg-slate-600'>Joined Call</Badge> : null}
           <p
             className={cn("text-xs flex w-full my-1", {
               "text-primary-foreground justify-end": fromCurrentUser,

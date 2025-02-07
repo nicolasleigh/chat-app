@@ -3,7 +3,7 @@
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import useConversation from "@/hooks/useConversation";
-import { useQuery } from "convex/react";
+import { usePaginatedQuery, useQuery } from "convex/react";
 import Message from "./Message";
 import useMutationState from "@/hooks/useMutationState";
 import { Dispatch, SetStateAction, useEffect } from "react";
@@ -23,9 +23,15 @@ type Props = {
 export default function Body({ members, callType, setCallType }: Props) {
   const { conversationId } = useConversation();
 
-  const messages = useQuery(api.messages.get, {
-    id: conversationId as Id<"conversations">,
-  });
+  // const messages = useQuery(api.messages.get, {
+  //   id: conversationId as Id<"conversations">,
+  // });
+
+  const { results: messages } = usePaginatedQuery(
+    api.messages.get,
+    { id: conversationId as Id<"conversations"> },
+    { initialNumItems: 5 }
+  );
 
   const { mutate: markRead } = useMutationState(api.conversation.markRead);
 

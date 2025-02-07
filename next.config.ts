@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["img.clerk.com", "utfs.io"],
   },
+  reactStrictMode: false,
   // images: {
   //   remotePatterns: [
   //     {

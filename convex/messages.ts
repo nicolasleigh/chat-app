@@ -1,9 +1,11 @@
 import { ConvexError, v } from "convex/values";
 import { query } from "./_generated/server";
 import { getUserByClerkId } from "./_utils";
+import { paginationOptsValidator } from "convex/server";
 
 export const get = query({
   args: {
+    paginationOpts: paginationOptsValidator,
     id: v.id("conversations"),
   },
   handler: async (ctx, args) => {
@@ -28,29 +30,50 @@ export const get = query({
       throw new ConvexError("You aren't a member of this conversation");
     }
 
-    const messages = await ctx.db
+    // Paginated Queries: https://docs.convex.dev/database/pagination
+    const results = await ctx.db
       .query("messages")
       .withIndex("by_conversationId", (q) => q.eq("conversationId", args.id))
       .order("desc")
-      .collect();
+      .paginate(args.paginationOpts);
+    // .collect();
 
-    const messageWithUsers = Promise.all(
-      messages.map(async (message) => {
-        const messageSender = await ctx.db.get(message.senderId);
+    // What about N+1: https://stack.convex.dev/functional-relationships-helpers#what-about-n1
+    // const messageWithUsers = Promise.all(
+    //   results.page.map(async (message) => {
+    //     const messageSender = await ctx.db.get(message.senderId);
 
-        if (!messageSender) {
-          throw new ConvexError("Could not find sender of message");
-        }
+    //     if (!messageSender) {
+    //       throw new ConvexError("Could not find sender of message");
+    //     }
 
-        return {
-          message,
-          senderImage: messageSender.imageUrl,
-          senderName: messageSender.username,
-          isCurrentUser: messageSender._id === currentUser._id,
-        };
-      })
-    );
+    //     return {
+    //       message,
+    //       senderImage: messageSender.imageUrl,
+    //       senderName: messageSender.username,
+    //       isCurrentUser: messageSender._id === currentUser._id,
+    //     };
+    //   })
+    // );
 
-    return messageWithUsers;
+    // return messageWithUsers;
+    return {
+      ...results,
+      page: await Promise.all(
+        results.page.map(async (message) => {
+          const messageSender = await ctx.db.get(message.senderId);
+
+          if (!messageSender) {
+            throw new ConvexError("Could not find sender of message");
+          }
+          return {
+            message,
+            senderImage: messageSender.imageUrl,
+            senderName: messageSender.username,
+            isCurrentUser: messageSender._id === currentUser._id,
+          };
+        })
+      ),
+    };
   },
 });
