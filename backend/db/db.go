@@ -4,13 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func New(dsn string, maxOpenConns, maxIdleConns int, maxIdleTime string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", dsn)
+	// db, err := sql.Open("postgres", dsn)
+	pool,err := pgxpool.New(context.Background(),dsn)
 	if err != nil {
 		return nil, err
 	}
+
+	pgx.
 
 	duration, err := time.ParseDuration(maxIdleTime)
 	if err != nil {
