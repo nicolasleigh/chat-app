@@ -9,9 +9,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/nicolasleigh/chat-app/cmd/api"
 	"github.com/nicolasleigh/chat-app/env"
 	"github.com/nicolasleigh/chat-app/pg"
+	"github.com/nicolasleigh/chat-app/store"
 )
 
 type config struct {
@@ -21,6 +21,8 @@ type config struct {
 
 type application struct {
 	config config
+	query  *store.Queries
+	logger *slog.Logger
 	// store store.Storage
 }
 
@@ -52,14 +54,18 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	logger.Info("database connection pool established!")
+	q := store.New(pg.DB)
 
-	api.Route()
+	logger.Info("database connection pool established!")
 
 	app := &application{
 		config: cfg,
+		query:  q,
+		logger: logger,
 		// store: store,
 	}
+
+	Route(app)
 
 	srv := &http.Server{
 		Addr: fmt.Sprintf(":%d", app.config.port),

@@ -62,6 +62,19 @@ export async function POST(req: Request) {
       //   email: evt.data.email_addresses[0].email_address,
       // });
 
+      await fetch("http://localhost:8080/user", {
+        method: "POST",
+        body: JSON.stringify({
+          username: `${evt.data.first_name} ${evt.data.last_name}`,
+          imageUrl: evt.data.image_url,
+          clerkId: evt.data.id,
+          email: evt.data.email_addresses[0].email_address,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
       break;
 
     default:

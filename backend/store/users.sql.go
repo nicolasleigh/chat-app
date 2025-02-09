@@ -3,7 +3,7 @@
 //   sqlc v1.28.0
 // source: users.sql
 
-package db
+package store
 
 import (
 	"context"
@@ -21,10 +21,10 @@ RETURNING id, username, email, clerk_id, image_url
 `
 
 type CreateUserParams struct {
-	Username string
-	Email    string
-	ImageUrl pgtype.Text
-	ClerkID  string
+	Username string      `json:"username"`
+	Email    string      `json:"email"`
+	ImageUrl pgtype.Text `json:"image_url"`
+	ClerkID  string      `json:"clerk_id"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {

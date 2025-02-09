@@ -9,7 +9,7 @@ import (
 )
 
 type postgres struct {
-	db *pgxpool.Pool
+	DB *pgxpool.Pool
 }
 
 var (
@@ -27,18 +27,20 @@ func NewPG(ctx context.Context, connString string) (*postgres, error) {
 		}
 
 		pgInstance = &postgres{db}
+
 	})
 	if conerr != nil {
 		return nil, conerr
 	}
 
 	return pgInstance, nil
+
 }
 
 func (pg *postgres) Ping(ctx context.Context) error {
-	return pg.db.Ping(ctx)
+	return pg.DB.Ping(ctx)
 }
 
 func (pg *postgres) Close() {
-	pg.db.Close()
+	pg.DB.Close()
 }
