@@ -9,11 +9,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/nicolasleigh/chat-app/cmd/api"
 	"github.com/nicolasleigh/chat-app/env"
 	"github.com/nicolasleigh/chat-app/pg"
 )
-
-const version = "1.0.0"
 
 type config struct {
 	port int
@@ -55,7 +54,7 @@ func main() {
 
 	logger.Info("database connection pool established!")
 
-	http.HandleFunc("GET /health", healthCheckHandler)
+	api.Route()
 
 	app := &application{
 		config: cfg,
