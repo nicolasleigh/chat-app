@@ -1,7 +1,7 @@
 "use client";
 
-import Uploader from "@/frontend/components/shared/uploader";
-import { Button } from "@/frontend/components/ui/button";
+import Uploader from "@/components/shared/uploader";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/frontend/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/frontend/components/ui/form";
-import { api } from "@/frontend/convex/_generated/api";
+} from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { api } from "@/convex/_generated/api";
 import useConversation from "@/hooks/useConversation";
 import useMutationState from "@/hooks/useMutationState";
 import { zodResolver } from "@hookform/resolvers/zod";

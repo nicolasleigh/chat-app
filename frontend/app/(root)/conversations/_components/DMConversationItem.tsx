@@ -1,7 +1,7 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/frontend/components/ui/avatar";
-import { Badge } from "@/frontend/components/ui/badge";
-import { Card } from "@/frontend/components/ui/card";
-import { Id } from "@/frontend/convex/_generated/dataModel";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Id } from "@/convex/_generated/dataModel";
 import { User } from "lucide-react";
 import Link from "next/link";
 

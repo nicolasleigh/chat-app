@@ -1,8 +1,8 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/frontend/components/ui/avatar";
-import { Button } from "@/frontend/components/ui/button";
-import { Card } from "@/frontend/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -11,17 +11,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/frontend/components/ui/dialog";
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/frontend/components/ui/dropdown-menu";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/frontend/components/ui/form";
-import { Input } from "@/frontend/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/frontend/components/ui/tooltip";
-import { api } from "@/frontend/convex/_generated/api";
+} from "@/components/ui/dropdown-menu";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { api } from "@/convex/_generated/api";
 import useMutationState from "@/hooks/useMutationState";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "convex/react";

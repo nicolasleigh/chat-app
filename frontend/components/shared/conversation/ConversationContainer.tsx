@@ -1,4 +1,4 @@
-import { Card } from "@/frontend/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { ReactNode } from "react";
 
 export default function ConversationContainer({ children }: { children: ReactNode }) {

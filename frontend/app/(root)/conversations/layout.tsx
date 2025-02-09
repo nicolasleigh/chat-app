@@ -1,7 +1,7 @@
 "use client";
 
-import ItemList from "@/frontend/components/shared/item-list/ItemList";
-import { api } from "@/frontend/convex/_generated/api";
+import ItemList from "@/components/shared/item-list/ItemList";
+import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { Loader2 } from "lucide-react";
 import { ReactNode } from "react";

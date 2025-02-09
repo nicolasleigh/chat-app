@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@/frontend/components/ui/button";
-import { api } from "@/frontend/convex/_generated/api";
+import { Button } from "@/components/ui/button";
+import { api } from "@/convex/_generated/api";
 import useConversation from "@/hooks/useConversation";
 import useMutationState from "@/hooks/useMutationState";
 import { useUser } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ControlBar, LiveKitRoom, VideoConference } from "@livekit/components-react";
+import { ControlBar, LiveKitRoom, VideoConference } from "@/livekit/components-react";
 import "@livekit/components-styles";
 
 type Props = {

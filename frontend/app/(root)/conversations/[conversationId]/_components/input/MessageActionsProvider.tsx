@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/frontend/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/frontend/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "@radix-ui/react-popover";
 import { PlusCircle, Smile } from "lucide-react";
 import { SetStateAction, useState } from "react";

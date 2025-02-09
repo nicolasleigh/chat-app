@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@/frontend/components/ui/card";
+import { Card } from "@/components/ui/card";
 import useConversation from "@/hooks/useConversation";
 import { cn } from "@/lib/utils";
 import { PropsWithChildren, ReactNode } from "react";

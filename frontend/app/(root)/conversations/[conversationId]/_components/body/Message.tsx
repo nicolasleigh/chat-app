@@ -1,10 +1,10 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/frontend/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ReactNode } from "react";
 import ImagePreview from "./ImagePreview";
 import FilePreview from "./FilePreview";
-import { Badge } from "@/frontend/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 
 type Props = {
   fromCurrentUser: boolean;

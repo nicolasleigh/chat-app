@@ -3,8 +3,8 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/frontend/components/ui/tooltip";
-import { Button } from "@/frontend/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/frontend/components/ui/dialog";
+} from "@/components/ui/dialog";
 import { UserPlus } from "lucide-react";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/frontend/components/ui/form";
-import { Input } from "@/frontend/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import useMutationState from "@/hooks/useMutationState";
-import { api } from "@/frontend/convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 

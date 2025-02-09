@@ -1,8 +1,8 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/frontend/components/ui/avatar";
-import { Button } from "@/frontend/components/ui/button";
-import { Card } from "@/frontend/components/ui/card";
-import { api } from "@/frontend/convex/_generated/api";
-import { Id } from "@/frontend/convex/_generated/dataModel";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import useMutationState from "@/hooks/useMutationState";
 import { ConvexError } from "convex/values";
 import { Check, User, X } from "lucide-react";

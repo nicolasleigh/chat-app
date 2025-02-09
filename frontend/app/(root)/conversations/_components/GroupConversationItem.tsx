@@ -1,7 +1,7 @@
-import { Avatar, AvatarFallback } from "@/frontend/components/ui/avatar";
-import { Badge } from "@/frontend/components/ui/badge";
-import { Card } from "@/frontend/components/ui/card";
-import { Id } from "@/frontend/convex/_generated/dataModel";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
 
 type Props = {

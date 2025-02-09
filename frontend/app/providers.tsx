@@ -1,10 +1,10 @@
 "use client";
 
-import LoadingLogo from "@/frontend/components/shared/LoadingLogo";
-import { Button } from "@/frontend/components/ui/button";
-import { Toaster } from "@/frontend/components/ui/sonner";
-import { ThemeProvider } from "@/frontend/components/ui/theme/theme-provider";
-import { TooltipProvider } from "@/frontend/components/ui/tooltip";
+import LoadingLogo from "@/components/shared/LoadingLogo";
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/ui/theme/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClerkProvider, SignInButton, useAuth } from "@clerk/nextjs";
 import { Authenticated, AuthLoading, ConvexReactClient, Unauthenticated } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";

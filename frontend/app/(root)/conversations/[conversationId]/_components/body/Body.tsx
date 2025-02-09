@@ -1,13 +1,13 @@
 "use client";
 
-import { api } from "@/frontend/convex/_generated/api";
-import { Id } from "@/frontend/convex/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import useConversation from "@/hooks/useConversation";
-import { usePaginatedQuery, useQuery } from "convex/react";
+import { usePaginatedQuery } from "convex/react";
 import Message from "./Message";
 import useMutationState from "@/hooks/useMutationState";
 import { Dispatch, SetStateAction, useEffect } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/frontend/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import CallRoom from "./CallRoom";
 
 type Props = {
