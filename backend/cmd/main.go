@@ -1,15 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/nicolasleigh/chat-app/db"
 	"github.com/nicolasleigh/chat-app/env"
-	"github.com/nicolasleigh/chat-app/store"
+	"github.com/nicolasleigh/chat-app/pg"
 )
 
 const version = "1.0.0"
@@ -21,43 +22,44 @@ type config struct {
 
 type application struct {
 	config config
-	store store.Storage
+	// store store.Storage
 }
 
 type dbConfig struct {
-	dsn          string
-	maxOpenConns int
-	maxIdleConns int
-	maxIdleTime  string
+	dsn string
 }
 
 func main() {
 	cfg := config{
 		port: env.GetInt("PORT", 8080),
 		db: dbConfig{
-			dsn:          env.GetString("DB_DSN", "postgres://admin:adminpassword@localhost:5432/chat?sslmode=disable"),
-			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
-			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
-			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
+			dsn: env.GetString("DB_DSN", "postgres://admin:adminpassword@localhost:5432/chat?sslmode=disable"),
 		},
 	}
 
-	// https://stackoverflow.com/questions/16895651/how-to-implement-level-based-logging-in-golang
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	db, err := db.New(cfg.db.dsn, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTime)
-	if err != nil {
-		log.Fatal(err)
-	}
-	logger.Info("database connection pool established!")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	store := store.NewStorage(db)
+	pg, err := pg.NewPG(ctx, cfg.db.dsn)
+	if err != nil {
+		logger.Error(err.Error())
+	}
+	defer pg.Close()
+
+	err = pg.Ping(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+	}
+
+	logger.Info("database connection pool established!")
 
 	http.HandleFunc("GET /health", healthCheckHandler)
 
 	app := &application{
 		config: cfg,
-		store: store,
+		// store: store,
 	}
 
 	srv := &http.Server{
