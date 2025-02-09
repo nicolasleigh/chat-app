@@ -23,4 +23,10 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	app.query.CreateUser(ctx, user)
+
+	js, err := json.MarshalIndent(user,"","/t")
+
+	w.Header().Set("Content-Type","application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(js)
 }

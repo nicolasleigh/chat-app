@@ -54,20 +54,12 @@ export async function POST(req: Request) {
     case "user.updated":
       console.log("Creating/Updating User:", evt.data.id);
 
-      // TODO:
-      // await ctx.runMutation(internal.user.create, {
-      //   username: `${evt.data.first_name} ${evt.data.last_name}`,
-      //   imageUrl: evt.data.image_url,
-      //   clerkId: evt.data.id,
-      //   email: evt.data.email_addresses[0].email_address,
-      // });
-
       await fetch("http://localhost:8080/user", {
         method: "POST",
         body: JSON.stringify({
           username: `${evt.data.first_name} ${evt.data.last_name}`,
-          imageUrl: evt.data.image_url,
-          clerkId: evt.data.id,
+          image_url: evt.data.image_url,
+          clerk_id: evt.data.id,
           email: evt.data.email_addresses[0].email_address,
         }),
         headers: {
