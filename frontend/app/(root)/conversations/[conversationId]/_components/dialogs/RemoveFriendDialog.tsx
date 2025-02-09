@@ -7,9 +7,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/frontend/components/ui/alert-dialog";
-import { api } from "@/frontend/convex/_generated/api";
-import { Id } from "@/frontend/convex/_generated/dataModel";
+} from "@/components/ui/alert-dialog";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import useMutationState from "@/hooks/useMutationState";
 import { ConvexError } from "convex/values";
 import { Dispatch, SetStateAction } from "react";

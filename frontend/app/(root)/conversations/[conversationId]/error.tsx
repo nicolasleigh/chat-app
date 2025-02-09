@@ -1,6 +1,6 @@
 "use client";
 
-import ConversationFallback from "@/frontend/components/shared/conversation/ConversationFallback";
+import ConversationFallback from "@/components/shared/conversation/ConversationFallback";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

@@ -1,6 +1,6 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// const isPublicRoute = createRouteMatcher(["/api/uploadthing", "/sign-in(.*)"]);
+const isPublicRoute = createRouteMatcher(["/api/uploadthing", "/sign-in(.*)", "/api/webhooks(.*)"]);
 
 // export default clerkMiddleware(async (auth, request) => {
 //   if (!isPublicRoute(request)) {

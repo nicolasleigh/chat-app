@@ -7,8 +7,7 @@ import (
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]string{
-		"status":  "ok",
-		"version": version,
+		"status": "ok",
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/frontend/components/ui/button";
-import { Card } from "@/frontend/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/frontend/components/ui/form";
-import { api } from "@/frontend/convex/_generated/api";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { api } from "@/convex/_generated/api";
 import useConversation from "@/hooks/useConversation";
 import useMutationState from "@/hooks/useMutationState";
 import { zodResolver } from "@hookform/resolvers/zod";

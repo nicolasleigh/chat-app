@@ -1,3 +1,14 @@
 {
-  "cSpell.words": ["adminpassword", "direnv", "nicolasleigh", "sslmode"]
+  "cSpell.words": [
+    "adminpassword",
+    "citext",
+    "conerr",
+    "direnv",
+    "jackc",
+    "nicolasleigh",
+    "pgxpool",
+    "sqlc",
+    "sslmode",
+    "Svix"
+  ]
 }

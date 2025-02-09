@@ -1,8 +1,8 @@
 "use client";
 
-import ConversationContainer from "@/frontend/components/shared/conversation/ConversationContainer";
-import { api } from "@/frontend/convex/_generated/api";
-import { Id } from "@/frontend/convex/_generated/dataModel";
+import ConversationContainer from "@/components/shared/conversation/ConversationContainer";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { Loader2 } from "lucide-react";
 import Header from "./_components/Header";

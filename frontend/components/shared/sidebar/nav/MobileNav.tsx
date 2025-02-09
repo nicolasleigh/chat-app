@@ -1,10 +1,10 @@
 "use client";
 
-import { Badge } from "@/frontend/components/ui/badge";
-import { Button } from "@/frontend/components/ui/button";
-import { Card } from "@/frontend/components/ui/card";
-import { ThemeToggle } from "@/frontend/components/ui/theme/theme-toggle";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/frontend/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/ui/theme/theme-toggle";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useConversation from "@/hooks/useConversation";
 import useNavigation from "@/hooks/useNavigation";
 import { UserButton } from "@clerk/nextjs";
