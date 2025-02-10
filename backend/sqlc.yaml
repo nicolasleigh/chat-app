@@ -9,3 +9,7 @@ sql:
         out: "store"
         sql_package: "pgx/v5"
         emit_json_tags: true
+        emit_db_tags: true
+        overrides:
+          - column: users.username
+            go_struct_tag: validate:"required"

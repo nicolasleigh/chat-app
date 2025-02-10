@@ -1,10 +1,11 @@
 package main
 
 import (
-	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/nicolasleigh/chat-app/store"
+	"github.com/nicolasleigh/chat-app/utils"
 )
 
 func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -14,19 +15,19 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 
 	var user store.CreateUserParams
 
-	dec := json.NewDecoder(body)
-	dec.DisallowUnknownFields()
-
-	err := dec.Decode(&user)
+	err := utils.ReadJSON(w, r, &user)
 	if err != nil {
-		app.logger.Error(err.Error())
+		slog.Error(err.Error())
 	}
 
-	app.query.CreateUser(ctx, user)
+	u, err := app.query.CreateUser(ctx, user)
+	if err != nil {
+		slog.Error(err.Error())
+	}
 
-	js, err := json.MarshalIndent(user,"","/t")
+	err = utils.WriteJSON(w, http.StatusCreated, u)
+	if err != nil {
+		slog.Error(err.Error())
+	}
 
-	w.Header().Set("Content-Type","application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(js)
 }

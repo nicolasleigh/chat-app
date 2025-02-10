@@ -9,9 +9,9 @@ import (
 )
 
 type User struct {
-	ID       int64       `json:"id"`
-	Username string      `json:"username"`
-	Email    string      `json:"email"`
-	ClerkID  string      `json:"clerk_id"`
-	ImageUrl pgtype.Text `json:"image_url"`
+	ID       int64       `db:"id" json:"id"`
+	Username string      `db:"username" json:"username" validate:"required"`
+	Email    string      `db:"email" json:"email"`
+	ClerkID  string      `db:"clerk_id" json:"clerk_id"`
+	ImageUrl pgtype.Text `db:"image_url" json:"image_url"`
 }

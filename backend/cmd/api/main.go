@@ -19,7 +19,6 @@ type config struct {
 type application struct {
 	config config
 	query  *store.Queries
-	logger *slog.Logger
 	// store store.Storage
 }
 
@@ -28,6 +27,10 @@ type dbConfig struct {
 }
 
 func main() {
+	// Logger
+	newLog := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(newLog)
+
 	cfg := config{
 		port: env.GetInt("PORT", 8080),
 		db: dbConfig{
@@ -35,34 +38,33 @@ func main() {
 		},
 	}
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	// logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	pg, err := pg.NewPG(ctx, cfg.db.dsn)
 	if err != nil {
-		logger.Error(err.Error())
+		slog.Error(err.Error())
 	}
 	defer pg.Close()
 
 	err = pg.Ping(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		slog.Error(err.Error())
 	}
 
 	q := store.New(pg.DB)
 
-	logger.Info("database connection pool established!")
+	slog.Info("database connection pool established!")
 
 	app := &application{
 		config: cfg,
 		query:  q,
-		logger: logger,
 		// store: store,
 	}
 
 	srv := app.NewServer()
 
-	logger.Error(srv.ListenAndServe().Error())
+	slog.Error(srv.ListenAndServe().Error())
 }
