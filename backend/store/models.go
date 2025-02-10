@@ -4,14 +4,10 @@
 
 package store
 
-import (
-	"github.com/jackc/pgx/v5/pgtype"
-)
-
 type User struct {
-	ID       int64       `json:"id"`
-	Username string      `json:"username"`
-	Email    string      `json:"email"`
-	ClerkID  string      `json:"clerk_id"`
-	ImageUrl pgtype.Text `json:"image_url"`
+	ID       int64   `json:"id"`
+	Username string  `json:"username" validate:"required,min=1,max=100"`
+	Email    string  `json:"email" validate:"required,email,max=255"`
+	ClerkID  string  `json:"clerk_id" validate:"required"`
+	ImageUrl *string `json:"image_url" validate:"required,url"`
 }

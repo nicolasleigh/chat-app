@@ -7,8 +7,6 @@ package store
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -21,10 +19,10 @@ RETURNING id, username, email, clerk_id, image_url
 `
 
 type CreateUserParams struct {
-	Username string      `json:"username"`
-	Email    string      `json:"email"`
-	ImageUrl pgtype.Text `json:"image_url"`
-	ClerkID  string      `json:"clerk_id"`
+	Username string  `json:"username" validate:"required,min=1,max=100"`
+	Email    string  `json:"email" validate:"required,email,max=255"`
+	ImageUrl *string `json:"image_url" validate:"required,url"`
+	ClerkID  string  `json:"clerk_id" validate:"required"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {

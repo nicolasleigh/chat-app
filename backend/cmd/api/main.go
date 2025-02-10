@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/nicolasleigh/chat-app/env"
 	"github.com/nicolasleigh/chat-app/pg"
 	"github.com/nicolasleigh/chat-app/store"
@@ -22,7 +20,6 @@ type config struct {
 type application struct {
 	config config
 	query  *store.Queries
-	logger *slog.Logger
 	// store store.Storage
 }
 
@@ -30,7 +27,18 @@ type dbConfig struct {
 	dsn string
 }
 
+var (
+	Validate *validator.Validate
+	NewLog   *slog.Logger
+)
+
 func main() {
+	// Logger
+	NewLog = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(NewLog)
+
+	Validate = validator.New(validator.WithRequiredStructEnabled())
+
 	cfg := config{
 		port: env.GetInt("PORT", 8080),
 		db: dbConfig{
@@ -38,38 +46,34 @@ func main() {
 		},
 	}
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	pg, err := pg.NewPG(ctx, cfg.db.dsn)
 	if err != nil {
-		logger.Error(err.Error())
+		slog.Error(err.Error())
 	}
 	defer pg.Close()
 
 	err = pg.Ping(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		slog.Error(err.Error())
 	}
 
 	q := store.New(pg.DB)
 
-	logger.Info("database connection pool established!")
+	slog.Info("database connection pool established!")
 
 	app := &application{
 		config: cfg,
 		query:  q,
-		logger: logger,
 		// store: store,
 	}
 
-	Route(app)
-
-	srv := &http.Server{
-		Addr: fmt.Sprintf(":%d", app.config.port),
+	srv := app.NewServer()
+	err = srv.ListenAndServe()
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
-
-	log.Fatal(srv.ListenAndServe())
 }
