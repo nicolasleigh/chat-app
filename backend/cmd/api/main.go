@@ -2,10 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
@@ -65,11 +62,7 @@ func main() {
 		// store: store,
 	}
 
-	Route(app)
+	srv := app.NewServer()
 
-	srv := &http.Server{
-		Addr: fmt.Sprintf(":%d", app.config.port),
-	}
-
-	log.Fatal(srv.ListenAndServe())
+	logger.Error(srv.ListenAndServe().Error())
 }
