@@ -1,11 +1,9 @@
 package main
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/nicolasleigh/chat-app/store"
-	"github.com/nicolasleigh/chat-app/utils"
 )
 
 func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -13,21 +11,30 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	body := r.Body
 	defer body.Close()
 
-	var user store.CreateUserParams
+	var payload store.CreateUserParams
 
-	err := utils.ReadJSON(w, r, &user)
+	err := readJSON(w, r, &payload)
 	if err != nil {
-		slog.Error(err.Error())
+		badRequestResponse(w, err)
+		return
 	}
 
-	u, err := app.query.CreateUser(ctx, user)
+	err = Validate.Struct(payload)
 	if err != nil {
-		slog.Error(err.Error())
+		badRequestResponse(w, err)
+		return
 	}
 
-	err = utils.WriteJSON(w, http.StatusCreated, u)
+	u, err := app.query.CreateUser(ctx, payload)
 	if err != nil {
-		slog.Error(err.Error())
+		badRequestResponse(w, err)
+		return
+	}
+
+	err = writeJSON(w, http.StatusCreated, u)
+	if err != nil {
+		serverErrorResponse(w, err)
+		return
 	}
 
 }

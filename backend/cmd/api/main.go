@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/nicolasleigh/chat-app/env"
 	"github.com/nicolasleigh/chat-app/pg"
 	"github.com/nicolasleigh/chat-app/store"
@@ -26,10 +27,17 @@ type dbConfig struct {
 	dsn string
 }
 
+var (
+	Validate *validator.Validate
+	NewLog   *slog.Logger
+)
+
 func main() {
 	// Logger
-	newLog := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	slog.SetDefault(newLog)
+	NewLog = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(NewLog)
+
+	Validate = validator.New(validator.WithRequiredStructEnabled())
 
 	cfg := config{
 		port: env.GetInt("PORT", 8080),
@@ -37,8 +45,6 @@ func main() {
 			dsn: env.GetString("DB_DSN", "postgres://admin:adminpassword@localhost:5432/chat?sslmode=disable"),
 		},
 	}
-
-	// logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -65,6 +71,9 @@ func main() {
 	}
 
 	srv := app.NewServer()
-
-	slog.Error(srv.ListenAndServe().Error())
+	err = srv.ListenAndServe()
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
 }
