@@ -70,6 +70,26 @@ func (q *Queries) CreateRequest(ctx context.Context, arg CreateRequestParams) (F
 	return i, err
 }
 
+const deleteFriend = `-- name: DeleteFriend :exec
+WITH deleted_friend AS (
+  DELETE FROM friends 
+  WHERE user_a_id = LEAST($1::bigint, $2::bigint) AND user_b_id = GREATEST($1::bigint, $2::bigint)
+  RETURNING conversation_id
+)
+DELETE FROM conversations
+WHERE id = (SELECT conversation_id FROM deleted_friend)
+`
+
+type DeleteFriendParams struct {
+	Column1 int64 `json:"column_1"`
+	Column2 int64 `json:"column_2"`
+}
+
+func (q *Queries) DeleteFriend(ctx context.Context, arg DeleteFriendParams) error {
+	_, err := q.db.Exec(ctx, deleteFriend, arg.Column1, arg.Column2)
+	return err
+}
+
 const deleteRequest = `-- name: DeleteRequest :one
 DELETE FROM friend_requests 
 WHERE id = $1
@@ -86,4 +106,80 @@ func (q *Queries) DeleteRequest(ctx context.Context, id int64) (FriendRequest, e
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getFriends = `-- name: GetFriends :many
+SELECT users.id, users.username, users.email, users.clerk_id, users.image_url
+FROM users
+JOIN friends ON (
+    (friends.user_a_id = $1 AND users.id = friends.user_b_id) OR
+    (friends.user_b_id = $1 AND users.id = friends.user_a_id)
+)
+`
+
+func (q *Queries) GetFriends(ctx context.Context, userAID int64) ([]User, error) {
+	rows, err := q.db.Query(ctx, getFriends, userAID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Email,
+			&i.ClerkID,
+			&i.ImageUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getRequests = `-- name: GetRequests :many
+SELECT users.id, users.username, users.image_url, users.email, COUNT(*) OVER() AS request_count 
+FROM friend_requests
+JOIN users ON friend_requests.sender_id = users.id
+WHERE receiver_id = $1
+`
+
+type GetRequestsRow struct {
+	ID           int64   `json:"id"`
+	Username     string  `json:"username" validate:"required,min=1,max=100"`
+	ImageUrl     *string `json:"image_url" validate:"required,url"`
+	Email        string  `json:"email" validate:"required,email,max=255"`
+	RequestCount int64   `json:"request_count"`
+}
+
+func (q *Queries) GetRequests(ctx context.Context, receiverID int64) ([]GetRequestsRow, error) {
+	rows, err := q.db.Query(ctx, getRequests, receiverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRequestsRow
+	for rows.Next() {
+		var i GetRequestsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.ImageUrl,
+			&i.Email,
+			&i.RequestCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

@@ -110,3 +110,70 @@ func (app *application) acceptRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (app *application) getFriends(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	idString := r.PathValue("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+
+	friends, err := app.query.GetFriends(ctx, int64(id))
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+
+	err = writeJSON(w, http.StatusOK, friends)
+	if err != nil {
+		serverErrorResponse(w, err)
+		return
+	}
+}
+
+func (app *application) deleteFriend(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var payload store.DeleteFriendParams
+
+	err := readJSON(w, r, &payload)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+
+	err = app.query.DeleteFriend(ctx, payload)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+}
+
+func (app *application) getRequests(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var payload struct{
+		Receiver_id int64 `json:"receiver_id"`
+	}
+
+	err := readJSON(w, r, &payload)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+
+	friendReq, err := app.query.GetRequests(ctx, payload.Receiver_id)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+
+	err = writeJSON(w, http.StatusOK, friendReq)
+	if err != nil {
+		serverErrorResponse(w, err)
+		return
+	}
+}
