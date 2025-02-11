@@ -69,9 +69,9 @@ func (app *application) acceptRequest(w http.ResponseWriter, r *http.Request) {
 	body := r.Body
 	defer body.Close()
 
-	idString := r.PathValue("id")
+	idString := r.PathValue("request_id")
 
-	id, err := strconv.Atoi(idString)
+	request_id, err := strconv.Atoi(idString)
 	if err != nil {
 		badRequestResponse(w, err)
 		return
@@ -98,7 +98,7 @@ func (app *application) acceptRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = app.query.DeleteRequest(ctx, int64(id))
+	_, err = app.query.DeleteRequest(ctx, int64(request_id))
 	if err != nil {
 		badRequestResponse(w, err)
 		return
@@ -155,7 +155,7 @@ func (app *application) deleteFriend(w http.ResponseWriter, r *http.Request) {
 func (app *application) getRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var payload struct{
+	var payload struct {
 		Receiver_id int64 `json:"receiver_id"`
 	}
 

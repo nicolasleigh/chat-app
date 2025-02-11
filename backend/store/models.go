@@ -38,11 +38,12 @@ type FriendRequest struct {
 }
 
 type Message struct {
-	ID             int64   `json:"id"`
-	SenderID       int64   `json:"sender_id"`
-	ConversationID int64   `json:"conversation_id"`
-	Type           *string `json:"type"`
-	Content        *string `json:"content"`
+	ID             int64              `json:"id"`
+	SenderID       int64              `json:"sender_id"`
+	ConversationID int64              `json:"conversation_id"`
+	Type           *string            `json:"type"`
+	Content        *string            `json:"content"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {
