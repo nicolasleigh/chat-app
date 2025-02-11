@@ -1,7 +1,7 @@
 include .envrc
 MIGRATIONS_PATH=./migrations
 
-.PHONY: curl-health fmt env compose/build compose/up migrations/new migrations/up sqlc migrations/force
+.PHONY: curl-health fmt env compose/build compose/up migrations/new migrations/up sqlc migrations/force migrations/down
 
 curl-health:
 	@curl -v http://localhost:8080/health
@@ -23,6 +23,9 @@ migrations/new:
 
 migrations/up:
 	@migrate -database ${DB_DSN} -path ${MIGRATIONS_PATH} up
+
+migrations/down:
+	@migrate -database ${DB_DSN} -path ${MIGRATIONS_PATH} down ${num}
 
 migrations/force:
 	@migrate -database ${DB_DSN} -path ${MIGRATIONS_PATH} force ${version}

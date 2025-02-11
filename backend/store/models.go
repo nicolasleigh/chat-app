@@ -4,6 +4,48 @@
 
 package store
 
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type Conversation struct {
+	ID            int64   `json:"id"`
+	Name          *string `json:"name"`
+	IsGroup       bool    `json:"is_group"`
+	LastMessageID *int64  `json:"last_message_id"`
+}
+
+type ConversationMember struct {
+	ID             int64  `json:"id"`
+	MemberID       int64  `json:"member_id"`
+	ConversationID int64  `json:"conversation_id"`
+	LastMessageID  *int64 `json:"last_message_id"`
+}
+
+type Friend struct {
+	ID             int64              `json:"id"`
+	UserAID        int64              `json:"user_a_id"`
+	UserBID        int64              `json:"user_b_id"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	ConversationID *int64             `json:"conversation_id"`
+}
+
+type FriendRequest struct {
+	ID         int64              `json:"id"`
+	SenderID   int64              `json:"sender_id" validate:"required"`
+	ReceiverID int64              `json:"receiver_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type Message struct {
+	ID             int64              `json:"id"`
+	SenderID       int64              `json:"sender_id"`
+	ConversationID int64              `json:"conversation_id"`
+	Type           *string            `json:"type"`
+	Content        *string            `json:"content"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+}
+
 type User struct {
 	ID       int64   `json:"id"`
 	Username string  `json:"username" validate:"required,min=1,max=100"`
