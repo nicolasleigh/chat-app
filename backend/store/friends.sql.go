@@ -10,44 +10,37 @@ import (
 )
 
 const acceptRequest = `-- name: AcceptRequest :exec
-WITH friend_insert AS (
-    INSERT INTO friends (user_a_id, user_b_id, conversation_id)
-    VALUES ($1, $2, $3)
-    RETURNING conversation_id
+WITH new_conversation AS (
+  -- First, create the conversation
+  INSERT INTO conversations (is_group)
+  VALUES (false)
+  RETURNING id AS conversation_id
 ),
-first_member AS (
-    INSERT INTO conversation_members (member_id, conversation_id)
-    SELECT $1, conversation_id FROM friend_insert
+friend_insert AS (
+  -- Insert friendship with ordered user IDs
+  INSERT INTO friends (user_a_id, user_b_id, conversation_id)
+  SELECT 
+    LEAST($1::bigint, $2::bigint),  -- Ensure user_a_id < user_b_id
+    GREATEST($1::bigint, $2::bigint),
+    conversation_id
+  FROM new_conversation
+  RETURNING conversation_id
 )
 INSERT INTO conversation_members (member_id, conversation_id)
-SELECT $2, conversation_id FROM friend_insert
+SELECT user_id, conversation_id
+FROM friend_insert
+CROSS JOIN (VALUES (LEAST($1::bigint, $2::bigint)), (GREATEST($1::bigint, $2::bigint))) AS users(user_id)
 `
 
 type AcceptRequestParams struct {
-	UserAID        int64  `json:"user_a_id"`
-	MemberID       int64  `json:"member_id"`
-	ConversationID *int64 `json:"conversation_id"`
+	Column1 int64 `json:"column_1"`
+	Column2 int64 `json:"column_2"`
 }
 
+// Insert both users into conversation_members
 func (q *Queries) AcceptRequest(ctx context.Context, arg AcceptRequestParams) error {
-	_, err := q.db.Exec(ctx, acceptRequest, arg.UserAID, arg.MemberID, arg.ConversationID)
+	_, err := q.db.Exec(ctx, acceptRequest, arg.Column1, arg.Column2)
 	return err
-}
-
-const createConversation = `-- name: CreateConversation :one
-INSERT INTO conversations (
-  is_group
-) VALUES (
-  false
-)
-RETURNING id
-`
-
-func (q *Queries) CreateConversation(ctx context.Context) (int64, error) {
-	row := q.db.QueryRow(ctx, createConversation)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
 }
 
 const createRequest = `-- name: CreateRequest :one
@@ -61,7 +54,7 @@ RETURNING id, sender_id, receiver_id, created_at
 `
 
 type CreateRequestParams struct {
-	SenderID int64  `json:"sender_id"`
+	SenderID int64  `json:"sender_id" validate:"required"`
 	Email    string `json:"email" validate:"required,email,max=255"`
 }
 

@@ -32,7 +32,7 @@ type Friend struct {
 
 type FriendRequest struct {
 	ID         int64              `json:"id"`
-	SenderID   int64              `json:"sender_id"`
+	SenderID   int64              `json:"sender_id" validate:"required"`
 	ReceiverID int64              `json:"receiver_id"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }

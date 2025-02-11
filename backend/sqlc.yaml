@@ -20,3 +20,5 @@ sql:
             go_struct_tag: validate:"required,url"
           - column: users.clerk_id
             go_struct_tag: validate:"required"
+          - column: friend_requests.sender_id
+            go_struct_tag: validate:"required"

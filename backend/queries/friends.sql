@@ -12,23 +12,25 @@ DELETE FROM friend_requests
 WHERE id = $1
 RETURNING *;
 
--- name: CreateConversation :one
-INSERT INTO conversations (
-  is_group
-) VALUES (
-  false
-)
-RETURNING id;
-
 -- name: AcceptRequest :exec
-WITH friend_insert AS (
-    INSERT INTO friends (user_a_id, user_b_id, conversation_id)
-    VALUES ($1, $2, $3)
-    RETURNING conversation_id
+WITH new_conversation AS (
+  -- First, create the conversation
+  INSERT INTO conversations (is_group)
+  VALUES (false)
+  RETURNING id AS conversation_id
 ),
-first_member AS (
-    INSERT INTO conversation_members (member_id, conversation_id)
-    SELECT $1, conversation_id FROM friend_insert
+friend_insert AS (
+  -- Insert friendship with ordered user IDs
+  INSERT INTO friends (user_a_id, user_b_id, conversation_id)
+  SELECT 
+    LEAST($1::bigint, $2::bigint),  -- Ensure user_a_id < user_b_id
+    GREATEST($1::bigint, $2::bigint),
+    conversation_id
+  FROM new_conversation
+  RETURNING conversation_id
 )
+-- Insert both users into conversation_members
 INSERT INTO conversation_members (member_id, conversation_id)
-SELECT $2, conversation_id FROM friend_insert;
+SELECT user_id, conversation_id
+FROM friend_insert
+CROSS JOIN (VALUES (LEAST($1::bigint, $2::bigint)), (GREATEST($1::bigint, $2::bigint))) AS users(user_id);
