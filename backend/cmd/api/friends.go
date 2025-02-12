@@ -155,17 +155,9 @@ func (app *application) deleteFriend(w http.ResponseWriter, r *http.Request) {
 func (app *application) getRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var payload struct {
-		ClerkID string `json:"clerk_id"`
-	}
+	idString := r.PathValue("clerk_id")
 
-	err := readJSON(w, r, &payload)
-	if err != nil {
-		badRequestResponse(w, err)
-		return
-	}
-
-	friendReq, err := app.query.GetRequests(ctx, payload.ClerkID)
+	friendReq, err := app.query.GetRequests(ctx, idString)
 	if err != nil {
 		badRequestResponse(w, err)
 		return
