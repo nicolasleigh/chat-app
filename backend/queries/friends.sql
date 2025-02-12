@@ -9,7 +9,7 @@ RETURNING *;
 
 -- name: DeleteRequest :one
 DELETE FROM friend_requests 
-WHERE id = $1
+WHERE sender_id = $1
 RETURNING *;
 
 -- name: AcceptRequest :exec
@@ -64,7 +64,7 @@ WITH clerk_users AS (
     FROM users 
     WHERE users.clerk_id = $1
 )
-SELECT users.id, users.username, users.image_url, users.email, COUNT(*) OVER() AS request_count 
-FROM friend_requests
-JOIN users ON friend_requests.sender_id = users.id
-JOIN clerk_users ON friend_requests.receiver_id = clerk_users.id;
+SELECT users.id, users.username, users.image_url, users.email, f.sender_id, f.receiver_id ,COUNT(*) OVER() AS request_count 
+FROM friend_requests f
+JOIN users ON f.sender_id = users.id
+JOIN clerk_users ON f.receiver_id = clerk_users.id;

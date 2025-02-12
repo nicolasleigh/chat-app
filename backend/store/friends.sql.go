@@ -92,12 +92,12 @@ func (q *Queries) DeleteFriend(ctx context.Context, arg DeleteFriendParams) erro
 
 const deleteRequest = `-- name: DeleteRequest :one
 DELETE FROM friend_requests 
-WHERE id = $1
+WHERE sender_id = $1
 RETURNING id, sender_id, receiver_id, created_at
 `
 
-func (q *Queries) DeleteRequest(ctx context.Context, id int64) (FriendRequest, error) {
-	row := q.db.QueryRow(ctx, deleteRequest, id)
+func (q *Queries) DeleteRequest(ctx context.Context, senderID int64) (FriendRequest, error) {
+	row := q.db.QueryRow(ctx, deleteRequest, senderID)
 	var i FriendRequest
 	err := row.Scan(
 		&i.ID,
@@ -155,10 +155,10 @@ WITH clerk_users AS (
     FROM users 
     WHERE users.clerk_id = $1
 )
-SELECT users.id, users.username, users.image_url, users.email, COUNT(*) OVER() AS request_count 
-FROM friend_requests
-JOIN users ON friend_requests.sender_id = users.id
-JOIN clerk_users ON friend_requests.receiver_id = clerk_users.id
+SELECT users.id, users.username, users.image_url, users.email, f.sender_id, f.receiver_id ,COUNT(*) OVER() AS request_count 
+FROM friend_requests f
+JOIN users ON f.sender_id = users.id
+JOIN clerk_users ON f.receiver_id = clerk_users.id
 `
 
 type GetRequestsRow struct {
@@ -166,6 +166,8 @@ type GetRequestsRow struct {
 	Username     string  `json:"username" validate:"required,min=1,max=100"`
 	ImageUrl     *string `json:"image_url" validate:"required,url"`
 	Email        string  `json:"email" validate:"required,email,max=255"`
+	SenderID     int64   `json:"sender_id" validate:"required"`
+	ReceiverID   int64   `json:"receiver_id"`
 	RequestCount int64   `json:"request_count"`
 }
 
@@ -183,6 +185,8 @@ func (q *Queries) GetRequests(ctx context.Context, clerkID string) ([]GetRequest
 			&i.Username,
 			&i.ImageUrl,
 			&i.Email,
+			&i.SenderID,
+			&i.ReceiverID,
 			&i.RequestCount,
 		); err != nil {
 			return nil, err

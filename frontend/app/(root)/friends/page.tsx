@@ -3,13 +3,24 @@
 import ConversationFallback from "@/components/shared/conversation/ConversationFallback";
 import ItemList from "@/components/shared/item-list/ItemList";
 import AddFriendDialog from "./_components/AddFriendDialog";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { Loader2 } from "lucide-react";
 import Request from "./_components/Request";
+import { useQuery } from "@tanstack/react-query";
+import { getRequests } from "@/api/friends";
+import { useAuth } from "@clerk/nextjs";
 
 export default function FriendsPage() {
-  const requests = useQuery(api.requests.get);
+  // const requests = useQuery(api.requests.get);
+  const { userId: clerk_id } = useAuth();
+  const { data: requests } = useQuery({
+    queryKey: ["friend_requests"],
+    queryFn: () => {
+      if (!clerk_id) {
+        throw new Error("User ID is not available");
+      }
+      return getRequests({ clerk_id });
+    },
+  });
   return (
     <>
       <ItemList title='Friends' action={<AddFriendDialog />}>
@@ -20,17 +31,19 @@ export default function FriendsPage() {
             requests.map((req) => {
               return (
                 <Request
-                  key={req.request._id}
-                  id={req.request._id}
-                  imageUrl={req.sender.imageUrl}
-                  username={req.sender.username}
-                  email={req.sender.email}
+                  key={req.id}
+                  id={req.id}
+                  senderId={req.sender_id}
+                  receiverId={req.receiver_id}
+                  imageUrl={req.image_url}
+                  username={req.username}
+                  email={req.email}
                 />
               );
             })
           )
         ) : (
-          <Loader2 className='h-8 w-8' />
+          <Loader2 className='h-8 w-8 animate-spin' />
         )}
       </ItemList>
       <ConversationFallback />

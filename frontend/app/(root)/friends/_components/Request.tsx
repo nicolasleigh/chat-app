@@ -1,23 +1,44 @@
+import { acceptRequest, denyRequest } from "@/api/friends";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import useMutationState from "@/hooks/useMutationState";
-import { ConvexError } from "convex/values";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, User, X } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
-  id: Id<"requests">;
+  id: number;
   imageUrl: string;
   username: string;
   email: string;
+  senderId: number;
+  receiverId: number;
 };
 
-export default function Request({ id, imageUrl, email, username }: Props) {
-  const { mutate: denyRequest, pending: denyPending } = useMutationState(api.request.deny);
-  const { mutate: acceptRequest, pending: acceptPending } = useMutationState(api.request.accept);
+export default function Request({ id, imageUrl, email, username, senderId, receiverId }: Props) {
+  const queryClient = useQueryClient();
+
+  const { mutate: deny, isPending: denyPending } = useMutation({
+    mutationFn: () => denyRequest({ request_id: id }),
+    onSuccess: () => {
+      toast.success("Friend request denied");
+      queryClient.invalidateQueries({ queryKey: ["friend_requests"] });
+    },
+    onError: () => {
+      toast.error("Action failed, please try again.");
+    },
+  });
+
+  const { mutate: accept, isPending: acceptPending } = useMutation({
+    mutationFn: () => acceptRequest({ request_id: id, column_1: senderId, column_2: receiverId }),
+    onSuccess: () => {
+      toast.success("Friend request accept");
+      queryClient.invalidateQueries({ queryKey: ["friend_requests"] });
+    },
+    onError: () => {
+      toast.error("Action failed, please try again.");
+    },
+  });
 
   return (
     <Card className='w-full p-2 flex flex-row items-center justify-between gap-2'>
@@ -34,35 +55,10 @@ export default function Request({ id, imageUrl, email, username }: Props) {
         </div>
       </div>
       <div className='flex items-center gap-2'>
-        <Button
-          size='icon'
-          disabled={denyPending || acceptPending}
-          onClick={() => {
-            acceptRequest({ id })
-              .then(() => {
-                toast.success("Friend request accepted");
-              })
-              .catch((error) => {
-                toast.error(error instanceof ConvexError ? error.data : "Unexpected error");
-              });
-          }}
-        >
+        <Button size='icon' disabled={denyPending || acceptPending} onClick={() => accept()}>
           <Check />
         </Button>
-        <Button
-          size='icon'
-          disabled={denyPending}
-          variant='destructive'
-          onClick={() => {
-            denyRequest({ id })
-              .then(() => {
-                toast.success("Friend request denied");
-              })
-              .catch((error) => {
-                toast.error(error instanceof ConvexError ? error.data : "Unexpected error");
-              });
-          }}
-        >
+        <Button size='icon' disabled={denyPending} variant='destructive' onClick={() => deny()}>
           <X />
         </Button>
       </div>
