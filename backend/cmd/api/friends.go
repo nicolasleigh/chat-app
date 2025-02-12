@@ -32,14 +32,14 @@ func (app *application) createRequest(w http.ResponseWriter, r *http.Request) {
 	err = app.query.CreateRequest(ctx, payload)
 	if err != nil {
 		if data, ok := err.(*pgconn.PgError); ok && data.Code == "23502" {
-			msg := fmt.Sprintf("Email %s does not exist",payload.Email)
+			msg := fmt.Sprintf("Email %s does not exist", payload.Email)
 			err = errors.New(msg)
 			notFoundResponse(w, err)
 			return
 		}
 		if data, ok := err.(*pgconn.PgError); ok && data.Code == "23505" {
 			err = errors.New("You already sent request to this email!")
-			forbiddenResponse(w,err)
+			forbiddenResponse(w, err)
 			return
 		}
 		badRequestResponse(w, err)

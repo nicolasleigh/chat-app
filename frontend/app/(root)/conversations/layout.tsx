@@ -8,9 +8,14 @@ import { ReactNode } from "react";
 import DMConversationItem from "./_components/DMConversationItem";
 import CreateGroupDialog from "./_components/CreateGroupDialog";
 import GroupConversationItem from "./_components/GroupConversationItem";
+// import { useQuery } from "@tanstack/react-query";
 
 export default function ConversationsLayout({ children }: { children: ReactNode }) {
   const conversations = useQuery(api.conversations.get);
+  // const {} = useQuery({
+  //   queryKey: ["conversations"],
+  //   queryFn: () => {},
+  // });
   return (
     <>
       <ItemList title='Conversations' action={<CreateGroupDialog />}>

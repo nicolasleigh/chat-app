@@ -19,6 +19,8 @@ func (app *application) NewRouter() http.Handler {
 	// Message
 	mux.HandleFunc("POST /message", app.createMessage)
 	mux.HandleFunc("GET /messages", app.getMessages)
+	// Conversation
+	mux.HandleFunc("GET /conversation/{conversation_id}",app.getConversation)
 
 	return mux
 }
