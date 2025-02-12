@@ -59,8 +59,12 @@ DELETE FROM conversations
 WHERE id = (SELECT conversation_id FROM deleted_friend);
 
 -- name: GetRequests :many
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
 SELECT users.id, users.username, users.image_url, users.email, COUNT(*) OVER() AS request_count 
 FROM friend_requests
 JOIN users ON friend_requests.sender_id = users.id
-WHERE receiver_id = $1;
--- GROUP BY users.id, users.username, users.image_url, users.email;
+JOIN clerk_users ON friend_requests.receiver_id = clerk_users.id;

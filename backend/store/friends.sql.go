@@ -150,10 +150,15 @@ func (q *Queries) GetFriends(ctx context.Context, clerkID string) ([]User, error
 }
 
 const getRequests = `-- name: GetRequests :many
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
 SELECT users.id, users.username, users.image_url, users.email, COUNT(*) OVER() AS request_count 
 FROM friend_requests
 JOIN users ON friend_requests.sender_id = users.id
-WHERE receiver_id = $1
+JOIN clerk_users ON friend_requests.receiver_id = clerk_users.id
 `
 
 type GetRequestsRow struct {
@@ -164,8 +169,8 @@ type GetRequestsRow struct {
 	RequestCount int64   `json:"request_count"`
 }
 
-func (q *Queries) GetRequests(ctx context.Context, receiverID int64) ([]GetRequestsRow, error) {
-	rows, err := q.db.Query(ctx, getRequests, receiverID)
+func (q *Queries) GetRequests(ctx context.Context, clerkID string) ([]GetRequestsRow, error) {
+	rows, err := q.db.Query(ctx, getRequests, clerkID)
 	if err != nil {
 		return nil, err
 	}

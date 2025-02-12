@@ -156,7 +156,7 @@ func (app *application) getRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var payload struct {
-		Receiver_id int64 `json:"receiver_id"`
+		ClerkID string `json:"clerk_id"`
 	}
 
 	err := readJSON(w, r, &payload)
@@ -165,7 +165,7 @@ func (app *application) getRequests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	friendReq, err := app.query.GetRequests(ctx, payload.Receiver_id)
+	friendReq, err := app.query.GetRequests(ctx, payload.ClerkID)
 	if err != nil {
 		badRequestResponse(w, err)
 		return
