@@ -36,11 +36,17 @@ FROM friend_insert
 CROSS JOIN (VALUES (LEAST($1::bigint, $2::bigint)), (GREATEST($1::bigint, $2::bigint))) AS users(user_id);
 
 -- name: GetFriends :many
-SELECT users.*
-FROM users
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+SELECT users.* 
+FROM users 
 JOIN friends ON (
-    (friends.user_a_id = $1 AND users.id = friends.user_b_id) OR
-    (friends.user_b_id = $1 AND users.id = friends.user_a_id)
+    (friends.user_a_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_b_id)
+    OR 
+    (friends.user_b_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_a_id)
 );
 
 -- name: DeleteFriend :exec

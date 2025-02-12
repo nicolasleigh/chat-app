@@ -109,16 +109,22 @@ func (q *Queries) DeleteRequest(ctx context.Context, id int64) (FriendRequest, e
 }
 
 const getFriends = `-- name: GetFriends :many
-SELECT users.id, users.username, users.email, users.clerk_id, users.image_url
-FROM users
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+SELECT users.id, users.username, users.email, users.clerk_id, users.image_url 
+FROM users 
 JOIN friends ON (
-    (friends.user_a_id = $1 AND users.id = friends.user_b_id) OR
-    (friends.user_b_id = $1 AND users.id = friends.user_a_id)
+    (friends.user_a_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_b_id)
+    OR 
+    (friends.user_b_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_a_id)
 )
 `
 
-func (q *Queries) GetFriends(ctx context.Context, userAID int64) ([]User, error) {
-	rows, err := q.db.Query(ctx, getFriends, userAID)
+func (q *Queries) GetFriends(ctx context.Context, clerkID string) ([]User, error) {
+	rows, err := q.db.Query(ctx, getFriends, clerkID)
 	if err != nil {
 		return nil, err
 	}

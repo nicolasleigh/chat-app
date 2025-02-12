@@ -43,7 +43,7 @@ func (app *application) createRequest(w http.ResponseWriter, r *http.Request) {
 func (app *application) denyRequest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	idString := r.PathValue("id")
+	idString := r.PathValue("request_id")
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
@@ -114,14 +114,14 @@ func (app *application) acceptRequest(w http.ResponseWriter, r *http.Request) {
 func (app *application) getFriends(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	idString := r.PathValue("id")
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		badRequestResponse(w, err)
-		return
-	}
+	idString := r.PathValue("clerk_id")
+	// id, err := strconv.Atoi(idString)
+	// if err != nil {
+	// 	badRequestResponse(w, err)
+	// 	return
+	// }
 
-	friends, err := app.query.GetFriends(ctx, int64(id))
+	friends, err := app.query.GetFriends(ctx, idString)
 	if err != nil {
 		badRequestResponse(w, err)
 		return
