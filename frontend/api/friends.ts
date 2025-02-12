@@ -1,19 +1,25 @@
 import { z } from "zod";
 import { baseUrl } from "./utils";
 
-// sender_id, email
 type createRequestParams = {
-  sender_id: number;
+  clerkId: string;
   email: string;
 };
-export async function createRequest({ sender_id, email }: createRequestParams) {
-  await fetch(`${baseUrl}/request`, {
+export async function createRequest({ clerkId, email }: createRequestParams) {
+  const response = await fetch(`${baseUrl}/request`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ sender_id, email }),
+    body: JSON.stringify({ clerk_id: clerkId, email }),
   });
+  const data = await response.json();
+  if (!response.ok) {
+    if (response.status === 404 || 403) {
+      throw new Error(data);
+    }
+    throw new Error("Unexpected error occurs.");
+  }
 }
 
 type denyRequestParams = {

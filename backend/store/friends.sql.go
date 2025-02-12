@@ -43,31 +43,30 @@ func (q *Queries) AcceptRequest(ctx context.Context, arg AcceptRequestParams) er
 	return err
 }
 
-const createRequest = `-- name: CreateRequest :one
-INSERT INTO friend_requests (
-  sender_id, receiver_id
-) VALUES (
-  $1, 
-  (SELECT id FROM users WHERE email = $2)
+const createRequest = `-- name: CreateRequest :exec
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
 )
-RETURNING id, sender_id, receiver_id, created_at
+INSERT INTO friend_requests (
+    sender_id,
+    receiver_id
+)
+SELECT 
+    clerk_users.id,
+    (SELECT id FROM users WHERE users.email = $2)
+FROM clerk_users
 `
 
 type CreateRequestParams struct {
-	SenderID int64  `json:"sender_id" validate:"required"`
-	Email    string `json:"email" validate:"required,email,max=255"`
+	ClerkID string `json:"clerk_id" validate:"required"`
+	Email   string `json:"email" validate:"required,email,max=255"`
 }
 
-func (q *Queries) CreateRequest(ctx context.Context, arg CreateRequestParams) (FriendRequest, error) {
-	row := q.db.QueryRow(ctx, createRequest, arg.SenderID, arg.Email)
-	var i FriendRequest
-	err := row.Scan(
-		&i.ID,
-		&i.SenderID,
-		&i.ReceiverID,
-		&i.CreatedAt,
-	)
-	return i, err
+func (q *Queries) CreateRequest(ctx context.Context, arg CreateRequestParams) error {
+	_, err := q.db.Exec(ctx, createRequest, arg.ClerkID, arg.Email)
+	return err
 }
 
 const deleteFriend = `-- name: DeleteFriend :exec

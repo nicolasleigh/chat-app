@@ -6,6 +6,7 @@
     "direnv",
     "jackc",
     "nicolasleigh",
+    "pgconn",
     "pgtype",
     "pgxpool",
     "sqlc",

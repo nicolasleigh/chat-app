@@ -10,7 +10,6 @@ import { getRequests } from "@/api/friends";
 import { useAuth } from "@clerk/nextjs";
 
 export default function FriendsPage() {
-  // const requests = useQuery(api.requests.get);
   const { userId: clerk_id } = useAuth();
   const { data: requests } = useQuery({
     queryKey: ["friend_requests"],
@@ -23,7 +22,7 @@ export default function FriendsPage() {
   });
   return (
     <>
-      <ItemList title='Friends' action={<AddFriendDialog />}>
+      <ItemList title='Friends' action={<AddFriendDialog clerkId={clerk_id || ""} />}>
         {requests ? (
           requests.length === 0 ? (
             <p className='w-full h-full flex items-center justify-center'>No friend requests found</p>

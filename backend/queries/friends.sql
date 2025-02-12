@@ -1,11 +1,17 @@
--- name: CreateRequest :one
-INSERT INTO friend_requests (
-  sender_id, receiver_id
-) VALUES (
-  $1, 
-  (SELECT id FROM users WHERE email = $2)
+-- name: CreateRequest :exec
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
 )
-RETURNING *;
+INSERT INTO friend_requests (
+    sender_id,
+    receiver_id
+)
+SELECT 
+    clerk_users.id,
+    (SELECT id FROM users WHERE users.email = $2)
+FROM clerk_users;
 
 -- name: DeleteRequest :one
 DELETE FROM friend_requests 

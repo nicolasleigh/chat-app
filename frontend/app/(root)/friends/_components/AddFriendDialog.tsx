@@ -1,9 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { createRequest } from "@/api/friends";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,20 +11,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { UserPlus } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import useMutationState from "@/hooks/useMutationState";
-import { api } from "@/convex/_generated/api";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { UserPlus } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
+import { z } from "zod";
 
 const addFriendFormSchema = z.object({
   email: z.string().min(1, { message: "This field can't be empty" }).email("Please enter a valid email"),
 });
 
-export default function AddFriendDialog() {
-  const { mutate: createRequest, pending } = useMutationState(api.request.create);
+export default function AddFriendDialog({ clerkId }: { clerkId: string }) {
+  const { mutate: createReq, isPending } = useMutation({
+    mutationFn: (email: string) => createRequest({ email, clerkId }),
+    onSuccess: () => {
+      toast.success("Friend request sent!");
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
+  });
   const form = useForm<z.infer<typeof addFriendFormSchema>>({
     resolver: zodResolver(addFriendFormSchema),
     defaultValues: {
@@ -36,14 +43,7 @@ export default function AddFriendDialog() {
   });
 
   const handleSubmit = async (values: z.infer<typeof addFriendFormSchema>) => {
-    await createRequest({ email: values.email })
-      .then(() => {
-        form.reset();
-        toast.success("Friend request sent!");
-      })
-      .catch((error) => {
-        toast.error(error instanceof ConvexError ? error.data : "Unexpected error occurred");
-      });
+    createReq(values.email);
   };
   return (
     <Dialog>
@@ -82,7 +82,7 @@ export default function AddFriendDialog() {
               )}
             />
             <DialogFooter>
-              <Button disabled={pending} type='submit'>
+              <Button disabled={isPending} type='submit'>
                 Send
               </Button>
             </DialogFooter>
