@@ -15,6 +15,7 @@ import (
 type config struct {
 	port int
 	db   dbConfig
+	cors cors
 }
 
 type application struct {
@@ -25,6 +26,10 @@ type application struct {
 
 type dbConfig struct {
 	dsn string
+}
+
+type cors struct {
+	trustedOrigins []string
 }
 
 var (
@@ -43,6 +48,9 @@ func main() {
 		port: env.GetInt("PORT", 8080),
 		db: dbConfig{
 			dsn: env.GetString("DB_DSN", "postgres://admin:adminpassword@localhost:5432/chat?sslmode=disable"),
+		},
+		cors: cors{
+			trustedOrigins: []string{"http://localhost:3000"},
 		},
 	}
 
