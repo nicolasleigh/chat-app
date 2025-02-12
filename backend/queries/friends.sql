@@ -1,15 +1,21 @@
--- name: CreateRequest :one
-INSERT INTO friend_requests (
-  sender_id, receiver_id
-) VALUES (
-  $1, 
-  (SELECT id FROM users WHERE email = $2)
+-- name: CreateRequest :exec
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
 )
-RETURNING *;
+INSERT INTO friend_requests (
+    sender_id,
+    receiver_id
+)
+SELECT 
+    clerk_users.id,
+    (SELECT id FROM users WHERE users.email = $2)
+FROM clerk_users;
 
 -- name: DeleteRequest :one
 DELETE FROM friend_requests 
-WHERE id = $1
+WHERE sender_id = $1
 RETURNING *;
 
 -- name: AcceptRequest :exec
@@ -36,11 +42,17 @@ FROM friend_insert
 CROSS JOIN (VALUES (LEAST($1::bigint, $2::bigint)), (GREATEST($1::bigint, $2::bigint))) AS users(user_id);
 
 -- name: GetFriends :many
-SELECT users.*
-FROM users
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+SELECT users.* 
+FROM users 
 JOIN friends ON (
-    (friends.user_a_id = $1 AND users.id = friends.user_b_id) OR
-    (friends.user_b_id = $1 AND users.id = friends.user_a_id)
+    (friends.user_a_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_b_id)
+    OR 
+    (friends.user_b_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_a_id)
 );
 
 -- name: DeleteFriend :exec
@@ -53,8 +65,12 @@ DELETE FROM conversations
 WHERE id = (SELECT conversation_id FROM deleted_friend);
 
 -- name: GetRequests :many
-SELECT users.id, users.username, users.image_url, users.email, COUNT(*) OVER() AS request_count 
-FROM friend_requests
-JOIN users ON friend_requests.sender_id = users.id
-WHERE receiver_id = $1;
--- GROUP BY users.id, users.username, users.image_url, users.email;
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+SELECT users.id, users.username, users.image_url, users.email, f.sender_id, f.receiver_id ,COUNT(*) OVER() AS request_count 
+FROM friend_requests f
+JOIN users ON f.sender_id = users.id
+JOIN clerk_users ON f.receiver_id = clerk_users.id;

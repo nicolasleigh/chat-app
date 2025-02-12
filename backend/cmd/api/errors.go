@@ -20,9 +20,13 @@ func serverErrorResponse(w http.ResponseWriter, err error) {
 }
 
 func notFoundResponse(w http.ResponseWriter, err error) {
-	message := "the requested resource could not be found"
 	slog.Warn(err.Error())
-	errorResponse(w, http.StatusNotFound, message)
+	errorResponse(w, http.StatusNotFound, err.Error())
+}
+
+func forbiddenResponse(w http.ResponseWriter, err error) {
+	slog.Warn(err.Error())
+	errorResponse(w, http.StatusForbidden, err.Error())
 }
 
 func badRequestResponse(w http.ResponseWriter, err error) {

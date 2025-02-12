@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/nicolasleigh/chat-app/store"
 )
 
@@ -12,7 +15,6 @@ func (app *application) createRequest(w http.ResponseWriter, r *http.Request) {
 	body := r.Body
 	defer body.Close()
 
-	// TODO: change sender_id and receiver_id to clerk_id
 	var payload store.CreateRequestParams
 
 	err := readJSON(w, r, &payload)
@@ -27,13 +29,24 @@ func (app *application) createRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	friend, err := app.query.CreateRequest(ctx, payload)
+	err = app.query.CreateRequest(ctx, payload)
 	if err != nil {
+		if data, ok := err.(*pgconn.PgError); ok && data.Code == "23502" {
+			msg := fmt.Sprintf("Email %s does not exist", payload.Email)
+			err = errors.New(msg)
+			notFoundResponse(w, err)
+			return
+		}
+		if data, ok := err.(*pgconn.PgError); ok && data.Code == "23505" {
+			err = errors.New("You already sent request to this email!")
+			forbiddenResponse(w, err)
+			return
+		}
 		badRequestResponse(w, err)
 		return
 	}
 
-	err = writeJSON(w, http.StatusCreated, friend)
+	err = writeJSON(w, http.StatusCreated, "Created!")
 	if err != nil {
 		serverErrorResponse(w, err)
 		return
@@ -43,7 +56,7 @@ func (app *application) createRequest(w http.ResponseWriter, r *http.Request) {
 func (app *application) denyRequest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	idString := r.PathValue("id")
+	idString := r.PathValue("request_id")
 
 	id, err := strconv.Atoi(idString)
 	if err != nil {
@@ -114,14 +127,14 @@ func (app *application) acceptRequest(w http.ResponseWriter, r *http.Request) {
 func (app *application) getFriends(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	idString := r.PathValue("id")
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		badRequestResponse(w, err)
-		return
-	}
+	idString := r.PathValue("clerk_id")
+	// id, err := strconv.Atoi(idString)
+	// if err != nil {
+	// 	badRequestResponse(w, err)
+	// 	return
+	// }
 
-	friends, err := app.query.GetFriends(ctx, int64(id))
+	friends, err := app.query.GetFriends(ctx, idString)
 	if err != nil {
 		badRequestResponse(w, err)
 		return
@@ -155,17 +168,9 @@ func (app *application) deleteFriend(w http.ResponseWriter, r *http.Request) {
 func (app *application) getRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var payload struct {
-		Receiver_id int64 `json:"receiver_id"`
-	}
+	idString := r.PathValue("clerk_id")
 
-	err := readJSON(w, r, &payload)
-	if err != nil {
-		badRequestResponse(w, err)
-		return
-	}
-
-	friendReq, err := app.query.GetRequests(ctx, payload.Receiver_id)
+	friendReq, err := app.query.GetRequests(ctx, idString)
 	if err != nil {
 		badRequestResponse(w, err)
 		return

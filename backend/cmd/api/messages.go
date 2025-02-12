@@ -32,9 +32,9 @@ func (app *application) getMessages(w http.ResponseWriter, r *http.Request) {
 		ConversationId int64 `json:"conversation_id"`
 	}
 
-	err := readJSON(w,r,&payload)
+	err := readJSON(w, r, &payload)
 	if err != nil {
-		badRequestResponse(w,err)
+		badRequestResponse(w, err)
 		return
 	}
 

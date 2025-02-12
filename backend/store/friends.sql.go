@@ -43,31 +43,30 @@ func (q *Queries) AcceptRequest(ctx context.Context, arg AcceptRequestParams) er
 	return err
 }
 
-const createRequest = `-- name: CreateRequest :one
-INSERT INTO friend_requests (
-  sender_id, receiver_id
-) VALUES (
-  $1, 
-  (SELECT id FROM users WHERE email = $2)
+const createRequest = `-- name: CreateRequest :exec
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
 )
-RETURNING id, sender_id, receiver_id, created_at
+INSERT INTO friend_requests (
+    sender_id,
+    receiver_id
+)
+SELECT 
+    clerk_users.id,
+    (SELECT id FROM users WHERE users.email = $2)
+FROM clerk_users
 `
 
 type CreateRequestParams struct {
-	SenderID int64  `json:"sender_id" validate:"required"`
-	Email    string `json:"email" validate:"required,email,max=255"`
+	ClerkID string `json:"clerk_id" validate:"required"`
+	Email   string `json:"email" validate:"required,email,max=255"`
 }
 
-func (q *Queries) CreateRequest(ctx context.Context, arg CreateRequestParams) (FriendRequest, error) {
-	row := q.db.QueryRow(ctx, createRequest, arg.SenderID, arg.Email)
-	var i FriendRequest
-	err := row.Scan(
-		&i.ID,
-		&i.SenderID,
-		&i.ReceiverID,
-		&i.CreatedAt,
-	)
-	return i, err
+func (q *Queries) CreateRequest(ctx context.Context, arg CreateRequestParams) error {
+	_, err := q.db.Exec(ctx, createRequest, arg.ClerkID, arg.Email)
+	return err
 }
 
 const deleteFriend = `-- name: DeleteFriend :exec
@@ -92,12 +91,12 @@ func (q *Queries) DeleteFriend(ctx context.Context, arg DeleteFriendParams) erro
 
 const deleteRequest = `-- name: DeleteRequest :one
 DELETE FROM friend_requests 
-WHERE id = $1
+WHERE sender_id = $1
 RETURNING id, sender_id, receiver_id, created_at
 `
 
-func (q *Queries) DeleteRequest(ctx context.Context, id int64) (FriendRequest, error) {
-	row := q.db.QueryRow(ctx, deleteRequest, id)
+func (q *Queries) DeleteRequest(ctx context.Context, senderID int64) (FriendRequest, error) {
+	row := q.db.QueryRow(ctx, deleteRequest, senderID)
 	var i FriendRequest
 	err := row.Scan(
 		&i.ID,
@@ -109,16 +108,22 @@ func (q *Queries) DeleteRequest(ctx context.Context, id int64) (FriendRequest, e
 }
 
 const getFriends = `-- name: GetFriends :many
-SELECT users.id, users.username, users.email, users.clerk_id, users.image_url
-FROM users
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+SELECT users.id, users.username, users.email, users.clerk_id, users.image_url 
+FROM users 
 JOIN friends ON (
-    (friends.user_a_id = $1 AND users.id = friends.user_b_id) OR
-    (friends.user_b_id = $1 AND users.id = friends.user_a_id)
+    (friends.user_a_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_b_id)
+    OR 
+    (friends.user_b_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_a_id)
 )
 `
 
-func (q *Queries) GetFriends(ctx context.Context, userAID int64) ([]User, error) {
-	rows, err := q.db.Query(ctx, getFriends, userAID)
+func (q *Queries) GetFriends(ctx context.Context, clerkID string) ([]User, error) {
+	rows, err := q.db.Query(ctx, getFriends, clerkID)
 	if err != nil {
 		return nil, err
 	}
@@ -144,10 +149,15 @@ func (q *Queries) GetFriends(ctx context.Context, userAID int64) ([]User, error)
 }
 
 const getRequests = `-- name: GetRequests :many
-SELECT users.id, users.username, users.image_url, users.email, COUNT(*) OVER() AS request_count 
-FROM friend_requests
-JOIN users ON friend_requests.sender_id = users.id
-WHERE receiver_id = $1
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+SELECT users.id, users.username, users.image_url, users.email, f.sender_id, f.receiver_id ,COUNT(*) OVER() AS request_count 
+FROM friend_requests f
+JOIN users ON f.sender_id = users.id
+JOIN clerk_users ON f.receiver_id = clerk_users.id
 `
 
 type GetRequestsRow struct {
@@ -155,11 +165,13 @@ type GetRequestsRow struct {
 	Username     string  `json:"username" validate:"required,min=1,max=100"`
 	ImageUrl     *string `json:"image_url" validate:"required,url"`
 	Email        string  `json:"email" validate:"required,email,max=255"`
+	SenderID     int64   `json:"sender_id" validate:"required"`
+	ReceiverID   int64   `json:"receiver_id"`
 	RequestCount int64   `json:"request_count"`
 }
 
-func (q *Queries) GetRequests(ctx context.Context, receiverID int64) ([]GetRequestsRow, error) {
-	rows, err := q.db.Query(ctx, getRequests, receiverID)
+func (q *Queries) GetRequests(ctx context.Context, clerkID string) ([]GetRequestsRow, error) {
+	rows, err := q.db.Query(ctx, getRequests, clerkID)
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +184,8 @@ func (q *Queries) GetRequests(ctx context.Context, receiverID int64) ([]GetReque
 			&i.Username,
 			&i.ImageUrl,
 			&i.Email,
+			&i.SenderID,
+			&i.ReceiverID,
 			&i.RequestCount,
 		); err != nil {
 			return nil, err
