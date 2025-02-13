@@ -57,3 +57,33 @@ func (q *Queries) GetConversation(ctx context.Context, id int64) ([]GetConversat
 	}
 	return items, nil
 }
+
+const getConversationsByClerkId = `-- name: GetConversationsByClerkId :many
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+SELECT member.conversation_id FROM conversation_members member
+JOIN clerk_users ON clerk_users.id = member.member_id
+`
+
+func (q *Queries) GetConversationsByClerkId(ctx context.Context, clerkID string) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getConversationsByClerkId, clerkID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var conversation_id int64
+		if err := rows.Scan(&conversation_id); err != nil {
+			return nil, err
+		}
+		items = append(items, conversation_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
