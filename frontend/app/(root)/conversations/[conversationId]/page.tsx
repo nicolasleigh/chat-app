@@ -1,9 +1,6 @@
 "use client";
 
 import ConversationContainer from "@/components/shared/conversation/ConversationContainer";
-// import { api } from "@/convex/_generated/api";
-// import { Id } from "@/convex/_generated/dataModel";
-// import { useQuery } from "convex/react";
 import { Loader2 } from "lucide-react";
 import Header from "./_components/Header";
 import Body from "./_components/body/Body";
@@ -80,7 +77,7 @@ export default function ConversationPage({ params }: Props) {
         setCallType={setCallType}
         currentUserId={conversation[0].current_user_id}
       />
-      <ChatInput />
+      <ChatInput sender_id={conversation[0].current_user_id} />
     </ConversationContainer>
   );
 }

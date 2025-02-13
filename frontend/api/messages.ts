@@ -27,3 +27,29 @@ export async function getMessages(conversation_id: number): Promise<z.infer<type
   data = getMessagesSchema.parse(data);
   return data;
 }
+
+type createMessageParams = {
+  sender_id: number;
+  conversation_id: number;
+  type: string;
+  content: string;
+};
+export async function createMessage({ sender_id, conversation_id, content, type }: createMessageParams) {
+  const response = await fetch(`${baseUrl}/message`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sender_id,
+      conversation_id,
+      content,
+      type,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+  const data = await response.json();
+  return data;
+}
