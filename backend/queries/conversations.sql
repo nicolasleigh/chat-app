@@ -11,6 +11,7 @@ WITH
         WHERE conversations.id = $2
     )
 SELECT 
+    clerk_users.id as current_user_id,
     users.id as other_member_id, 
     users.username as other_member_username, 
     users.email as other_member_email, 

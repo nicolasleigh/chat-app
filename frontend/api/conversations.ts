@@ -3,10 +3,11 @@ import { baseUrl } from "./utils";
 
 type getConversationParams = {
   clerk_id: string;
-  conversation_id: string;
+  conversation_id: number;
 };
 const conversationSchema = z.array(
   z.object({
+    current_user_id: z.number(),
     other_member_id: z.number(),
     other_member_username: z.string(),
     other_member_email: z.string(),

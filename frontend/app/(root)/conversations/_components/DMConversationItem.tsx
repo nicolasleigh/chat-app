@@ -7,6 +7,7 @@ type Props = {
   id: number;
   imageUrl: string;
   username: string;
+  clerkId: string;
   // lastMessageSender?: string;
   // lastMessageContent?: string;
   // unseenCount: number;
@@ -16,12 +17,13 @@ export default function DMConversationItem({
   id,
   imageUrl,
   username,
+  clerkId,
   // lastMessageSender,
   // lastMessageContent,
   // unseenCount,
 }: Props) {
   return (
-    <Link href={`/conversations/${id}`} className='w-full'>
+    <Link href={`/conversations/${id}?clerk_id=${clerkId}`} className='w-full'>
       <Card className='p-2 flex flex-row items-center justify-between'>
         <div className='flex flex-row items-center gap-4 truncate'>
           <Avatar>

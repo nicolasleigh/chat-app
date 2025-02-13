@@ -22,6 +22,7 @@ WITH
         WHERE conversations.id = $2
     )
 SELECT 
+    clerk_users.id as current_user_id,
     users.id as other_member_id, 
     users.username as other_member_username, 
     users.email as other_member_email, 
@@ -42,6 +43,7 @@ type GetConversationParams struct {
 }
 
 type GetConversationRow struct {
+	CurrentUserID            int64   `json:"current_user_id"`
 	OtherMemberID            int64   `json:"other_member_id"`
 	OtherMemberUsername      string  `json:"other_member_username" validate:"required,min=1,max=100"`
 	OtherMemberEmail         string  `json:"other_member_email" validate:"required,email,max=255"`
@@ -62,6 +64,7 @@ func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams
 	for rows.Next() {
 		var i GetConversationRow
 		if err := rows.Scan(
+			&i.CurrentUserID,
 			&i.OtherMemberID,
 			&i.OtherMemberUsername,
 			&i.OtherMemberEmail,
