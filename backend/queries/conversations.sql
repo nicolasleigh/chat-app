@@ -17,7 +17,8 @@ SELECT
     users.image_url as other_member_image_url, 
     member.last_message_id as other_member_last_message_id, 
     conv.name as conversation_name, 
-    conv.is_group 
+    conv.is_group,
+    conv.id as conversation_id
 FROM conversation_members member
 JOIN conv ON conv.id = member.conversation_id
 JOIN clerk_users ON clerk_users.id != member.member_id

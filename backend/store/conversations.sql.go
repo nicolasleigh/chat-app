@@ -28,7 +28,8 @@ SELECT
     users.image_url as other_member_image_url, 
     member.last_message_id as other_member_last_message_id, 
     conv.name as conversation_name, 
-    conv.is_group 
+    conv.is_group,
+    conv.id as conversation_id
 FROM conversation_members member
 JOIN conv ON conv.id = member.conversation_id
 JOIN clerk_users ON clerk_users.id != member.member_id
@@ -48,6 +49,7 @@ type GetConversationRow struct {
 	OtherMemberLastMessageID *int64  `json:"other_member_last_message_id"`
 	ConversationName         *string `json:"conversation_name"`
 	IsGroup                  bool    `json:"is_group"`
+	ConversationID           int64   `json:"conversation_id"`
 }
 
 func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams) ([]GetConversationRow, error) {
@@ -67,6 +69,7 @@ func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams
 			&i.OtherMemberLastMessageID,
 			&i.ConversationName,
 			&i.IsGroup,
+			&i.ConversationID,
 		); err != nil {
 			return nil, err
 		}

@@ -8,7 +8,7 @@ import { useUser } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ControlBar, LiveKitRoom, VideoConference } from "@/livekit/components-react";
+import { ControlBar, LiveKitRoom, VideoConference } from "@livekit/components-react";
 import "@livekit/components-styles";
 
 type Props = {
