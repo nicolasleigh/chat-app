@@ -52,13 +52,28 @@ export async function acceptRequest({ request_id, column_1, column_2 }: acceptRe
   });
 }
 
+const getFriendsSchema = z.array(
+  z.object({
+    id: z.number(),
+    username: z.string(),
+    email: z.string(),
+    clerk_id: z.string(),
+    image_url: z.string(),
+  })
+);
 type getFriendsParams = {
   clerk_id: string;
 };
-export async function getFriends({ clerk_id }: getFriendsParams) {
-  await fetch(`${baseUrl}/friends/${clerk_id}`, {
+export async function getFriends({ clerk_id }: getFriendsParams): Promise<z.infer<typeof getFriendsSchema>> {
+  const response = await fetch(`${baseUrl}/friends/${clerk_id}`, {
     method: "GET",
   });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+  let data = await response.json();
+  data = getFriendsSchema.parse(data);
+  return data;
 }
 
 type deleteFriendParams = {

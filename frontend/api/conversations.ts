@@ -57,3 +57,20 @@ export async function getAllConversations({
 
   return data;
 }
+
+type createGroupParams = {
+  member_id_arr: number[];
+  name: string;
+};
+export async function createGroup({ member_id_arr, name }: createGroupParams) {
+  const response = await fetch(`${baseUrl}/group/create`, {
+    method: "POST",
+    body: JSON.stringify({
+      member_id_arr,
+      name,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+}

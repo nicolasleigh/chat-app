@@ -9,6 +9,32 @@ import (
 	"context"
 )
 
+const createGroup = `-- name: CreateGroup :exec
+WITH conv AS (
+    INSERT INTO conversations (
+        name, is_group
+    ) VALUES (
+        $1, true
+    )
+    RETURNING id
+)
+INSERT INTO conversation_members (
+    conversation_id, member_id
+) 
+SELECT id, $2 
+FROM conv
+`
+
+type CreateGroupParams struct {
+	Name     *string `json:"name"`
+	MemberID int64   `json:"member_id"`
+}
+
+func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) error {
+	_, err := q.db.Exec(ctx, createGroup, arg.Name, arg.MemberID)
+	return err
+}
+
 const getConversation = `-- name: GetConversation :many
 WITH 
     clerk_users AS (

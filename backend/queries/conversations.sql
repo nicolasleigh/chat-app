@@ -33,3 +33,18 @@ WITH clerk_users AS (
 )
 SELECT member.conversation_id FROM conversation_members member
 JOIN clerk_users ON clerk_users.id = member.member_id;
+
+-- name: CreateGroup :exec
+WITH conv AS (
+    INSERT INTO conversations (
+        name, is_group
+    ) VALUES (
+        $1, true
+    )
+    RETURNING id
+)
+INSERT INTO conversation_members (
+    conversation_id, member_id
+) 
+SELECT id, $2 
+FROM conv;

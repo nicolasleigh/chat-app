@@ -22,6 +22,8 @@ func (app *application) NewRouter() http.Handler {
 	// Conversation
 	mux.HandleFunc("GET /conversation/{clerk_id}/{conversation_id}", app.getConversation)
 	mux.HandleFunc("GET /conversations/{clerk_id}", app.getAllConversations)
+	// Group
+	mux.HandleFunc("POST /group/create", app.createGroup)
 
 	return mux
 }
