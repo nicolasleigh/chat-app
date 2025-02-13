@@ -1,13 +1,12 @@
 "use client";
 
+import { createMessage } from "@/api/messages";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { api } from "@/convex/_generated/api";
 import useConversation from "@/hooks/useConversation";
-import useMutationState from "@/hooks/useMutationState";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ConvexError } from "convex/values";
+import { useMutation } from "@tanstack/react-query";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { SendHorizonal } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -23,8 +22,10 @@ const chatMessageSchema = z.object({
     message: "This field can't be empty",
   }),
 });
-
-export default function ChatInput() {
+type ChatInputParams = {
+  sender_id: number;
+};
+export default function ChatInput({ sender_id }: ChatInputParams) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -32,7 +33,18 @@ export default function ChatInput() {
   const { conversationId } = useConversation();
   const { theme } = useTheme();
 
-  const { mutate: createMessage, pending } = useMutationState(api.message.create);
+  // const { mutate: createMessage, pending } = useMutationState(api.message.create);
+  const { mutate: sendMsg, isPending } = useMutation({
+    mutationFn: ({ type, content }: { type: string; content: string }) =>
+      createMessage({ conversation_id: parseInt(conversationId), type, content, sender_id }),
+    onSuccess: () => {
+      form.reset();
+      textareaRef.current?.focus();
+    },
+    onError: () => {
+      toast.error("Failed to send message");
+    },
+  });
   const form = useForm<z.infer<typeof chatMessageSchema>>({
     resolver: zodResolver(chatMessageSchema),
     defaultValues: {
@@ -60,18 +72,7 @@ export default function ChatInput() {
   };
 
   const handleSubmit = async (values: z.infer<typeof chatMessageSchema>) => {
-    createMessage({
-      conversationId,
-      type: "text",
-      content: [values.content],
-    })
-      .then(() => {
-        form.reset();
-        textareaRef.current?.focus();
-      })
-      .catch((error) => {
-        toast.error(error instanceof ConvexError ? error.data : "Unexpected error");
-      });
+    sendMsg({ type: "text", content: values.content });
   };
 
   useEffect(() => {
@@ -133,7 +134,7 @@ export default function ChatInput() {
                 );
               }}
             />
-            <Button disabled={pending} size='icon' type='submit'>
+            <Button disabled={isPending} size='icon' type='submit'>
               <SendHorizonal />
             </Button>
           </form>

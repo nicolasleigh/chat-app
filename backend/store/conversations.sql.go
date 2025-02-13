@@ -10,28 +10,52 @@ import (
 )
 
 const getConversation = `-- name: GetConversation :many
-WITH conv AS (
-    SELECT id, name, is_group
-    FROM conversations 
-    WHERE conversations.id = $1
-)
-SELECT users.id, users.username, users.email, users.image_url, member.last_message_id, conv.name as conversation_name, conv.is_group FROM conversation_members member
+WITH 
+    clerk_users AS (
+        SELECT id 
+        FROM users 
+        WHERE users.clerk_id = $1
+    ),
+    conv AS (
+        SELECT id, name, is_group
+        FROM conversations 
+        WHERE conversations.id = $2
+    )
+SELECT 
+    clerk_users.id as current_user_id,
+    users.id as other_member_id, 
+    users.username as other_member_username, 
+    users.email as other_member_email, 
+    users.image_url as other_member_image_url, 
+    member.last_message_id as other_member_last_message_id, 
+    conv.name as conversation_name, 
+    conv.is_group,
+    conv.id as conversation_id
+FROM conversation_members member
 JOIN conv ON conv.id = member.conversation_id
+JOIN clerk_users ON clerk_users.id != member.member_id
 JOIN users ON users.id = member.member_id
 `
 
-type GetConversationRow struct {
-	ID               int64   `json:"id"`
-	Username         string  `json:"username" validate:"required,min=1,max=100"`
-	Email            string  `json:"email" validate:"required,email,max=255"`
-	ImageUrl         *string `json:"image_url" validate:"required,url"`
-	LastMessageID    *int64  `json:"last_message_id"`
-	ConversationName *string `json:"conversation_name"`
-	IsGroup          bool    `json:"is_group"`
+type GetConversationParams struct {
+	ClerkID string `json:"clerk_id" validate:"required"`
+	ID      int64  `json:"id"`
 }
 
-func (q *Queries) GetConversation(ctx context.Context, id int64) ([]GetConversationRow, error) {
-	rows, err := q.db.Query(ctx, getConversation, id)
+type GetConversationRow struct {
+	CurrentUserID            int64   `json:"current_user_id"`
+	OtherMemberID            int64   `json:"other_member_id"`
+	OtherMemberUsername      string  `json:"other_member_username" validate:"required,min=1,max=100"`
+	OtherMemberEmail         string  `json:"other_member_email" validate:"required,email,max=255"`
+	OtherMemberImageUrl      *string `json:"other_member_image_url" validate:"required,url"`
+	OtherMemberLastMessageID *int64  `json:"other_member_last_message_id"`
+	ConversationName         *string `json:"conversation_name"`
+	IsGroup                  bool    `json:"is_group"`
+	ConversationID           int64   `json:"conversation_id"`
+}
+
+func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams) ([]GetConversationRow, error) {
+	rows, err := q.db.Query(ctx, getConversation, arg.ClerkID, arg.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -40,17 +64,49 @@ func (q *Queries) GetConversation(ctx context.Context, id int64) ([]GetConversat
 	for rows.Next() {
 		var i GetConversationRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Username,
-			&i.Email,
-			&i.ImageUrl,
-			&i.LastMessageID,
+			&i.CurrentUserID,
+			&i.OtherMemberID,
+			&i.OtherMemberUsername,
+			&i.OtherMemberEmail,
+			&i.OtherMemberImageUrl,
+			&i.OtherMemberLastMessageID,
 			&i.ConversationName,
 			&i.IsGroup,
+			&i.ConversationID,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getConversationsByClerkId = `-- name: GetConversationsByClerkId :many
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+SELECT member.conversation_id FROM conversation_members member
+JOIN clerk_users ON clerk_users.id = member.member_id
+`
+
+func (q *Queries) GetConversationsByClerkId(ctx context.Context, clerkID string) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getConversationsByClerkId, clerkID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var conversation_id int64
+		if err := rows.Scan(&conversation_id); err != nil {
+			return nil, err
+		}
+		items = append(items, conversation_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

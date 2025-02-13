@@ -9,14 +9,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import useMutationState from "@/hooks/useMutationState";
 import { ConvexError } from "convex/values";
 import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 
 type Props = {
-  conversationId: Id<"conversations">;
+  conversationId: number;
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
 };

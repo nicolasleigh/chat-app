@@ -7,6 +7,8 @@ package store
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createMessage = `-- name: CreateMessage :one
@@ -38,21 +40,22 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (i
 }
 
 const getMessages = `-- name: GetMessages :many
-SELECT u.id as user_id, u.username, u.image_url, u.email, m.id as message_id, m.conversation_id as conversation_id ,m.type, m.content FROM messages m
+SELECT u.id as user_id, u.username, u.image_url, u.email, m.id as message_id, m.conversation_id as conversation_id ,m.type, m.content, m.created_at FROM messages m
 JOIN users u ON u.id = m.sender_id
 WHERE conversation_id = $1
 ORDER BY m.created_at DESC
 `
 
 type GetMessagesRow struct {
-	UserID         int64   `json:"user_id"`
-	Username       string  `json:"username" validate:"required,min=1,max=100"`
-	ImageUrl       *string `json:"image_url" validate:"required,url"`
-	Email          string  `json:"email" validate:"required,email,max=255"`
-	MessageID      int64   `json:"message_id"`
-	ConversationID int64   `json:"conversation_id"`
-	Type           *string `json:"type"`
-	Content        *string `json:"content"`
+	UserID         int64              `json:"user_id"`
+	Username       string             `json:"username" validate:"required,min=1,max=100"`
+	ImageUrl       *string            `json:"image_url" validate:"required,url"`
+	Email          string             `json:"email" validate:"required,email,max=255"`
+	MessageID      int64              `json:"message_id"`
+	ConversationID int64              `json:"conversation_id"`
+	Type           *string            `json:"type"`
+	Content        *string            `json:"content"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) GetMessages(ctx context.Context, conversationID int64) ([]GetMessagesRow, error) {
@@ -73,6 +76,7 @@ func (q *Queries) GetMessages(ctx context.Context, conversationID int64) ([]GetM
 			&i.ConversationID,
 			&i.Type,
 			&i.Content,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

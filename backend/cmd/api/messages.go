@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/nicolasleigh/chat-app/store"
 )
@@ -27,18 +28,14 @@ func (app *application) createMessage(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) getMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
-	var payload struct {
-		ConversationId int64 `json:"conversation_id"`
-	}
-
-	err := readJSON(w, r, &payload)
+	idString := r.PathValue("conversation_id")
+	id, err := strconv.Atoi(idString)
 	if err != nil {
 		badRequestResponse(w, err)
 		return
 	}
 
-	messages, err := app.query.GetMessages(ctx, payload.ConversationId)
+	messages, err := app.query.GetMessages(ctx, int64(id))
 	if err != nil {
 		badRequestResponse(w, err)
 		return

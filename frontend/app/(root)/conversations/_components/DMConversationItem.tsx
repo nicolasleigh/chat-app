@@ -1,29 +1,29 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Id } from "@/convex/_generated/dataModel";
 import { User } from "lucide-react";
 import Link from "next/link";
 
 type Props = {
-  id: Id<"conversations">;
+  id: number;
   imageUrl: string;
   username: string;
-  lastMessageSender?: string;
-  lastMessageContent?: string;
-  unseenCount: number;
+  clerkId: string;
+  // lastMessageSender?: string;
+  // lastMessageContent?: string;
+  // unseenCount: number;
 };
 
 export default function DMConversationItem({
   id,
   imageUrl,
   username,
-  lastMessageSender,
-  lastMessageContent,
-  unseenCount,
+  clerkId,
+  // lastMessageSender,
+  // lastMessageContent,
+  // unseenCount,
 }: Props) {
   return (
-    <Link href={`/conversations/${id}`} className='w-full'>
+    <Link href={`/conversations/${id}?clerk_id=${clerkId}`} className='w-full'>
       <Card className='p-2 flex flex-row items-center justify-between'>
         <div className='flex flex-row items-center gap-4 truncate'>
           <Avatar>
@@ -34,7 +34,7 @@ export default function DMConversationItem({
           </Avatar>
           <div className='flex flex-col truncate'>
             <h4 className='truncate'>{username}</h4>
-            {lastMessageSender && lastMessageContent ? (
+            {/* {lastMessageSender && lastMessageContent ? (
               <span className='text-sm text-muted-foreground flex truncate overflow-ellipsis'>
                 <p className='font-semibold'>
                   {lastMessageSender}
@@ -44,10 +44,10 @@ export default function DMConversationItem({
               </span>
             ) : (
               <p className='text-sm text-muted-foreground truncate'>Start the conversation!</p>
-            )}
+            )} */}
           </div>
         </div>
-        {unseenCount ? <Badge>{unseenCount}</Badge> : null}
+        {/* {unseenCount ? <Badge>{unseenCount}</Badge> : null} */}
       </Card>
     </Link>
   );
