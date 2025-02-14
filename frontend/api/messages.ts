@@ -95,7 +95,6 @@ export async function getConversationLastMessage({
     throw new Error(`HTTP error: ${response.status}`);
   }
   let data = await response.json();
-  console.log("lastmessage:", data);
   try {
     data = getConversationLastMessageSchema.parse(data);
   } catch (error) {

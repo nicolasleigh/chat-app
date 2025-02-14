@@ -77,16 +77,11 @@ export async function getFriends({ clerk_id }: getFriendsParams): Promise<z.infe
 }
 
 type deleteFriendParams = {
-  column_1: number;
-  column_2: number;
+  conversation_id: number;
 };
-export async function deleteFriend({ column_1, column_2 }: deleteFriendParams) {
-  await fetch(`${baseUrl}/friend`, {
+export async function deleteFriend({ conversation_id }: deleteFriendParams) {
+  await fetch(`${baseUrl}/friend/${conversation_id}`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ column_1, column_2 }),
   });
 }
 
