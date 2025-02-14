@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -31,7 +32,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 // import { useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import { CirclePlus, X } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -42,6 +43,7 @@ const createGroupFormSchema = z.object({
 });
 
 export default function CreateGroupDialog() {
+  const [open, setOpen] = useState(false);
   // const friends = useQuery(api.friends.get);
   const { userId: clerk_id } = useAuth();
   const { data: friends } = useQuery({
@@ -56,8 +58,12 @@ export default function CreateGroupDialog() {
 
   // const { mutate: createGroup, pending } = useMutationState(api.conversation.createGroup);
   const { mutate: create, isPending } = useMutation({
-    mutationFn: ({ name, member_id_arr }: { name: string; member_id_arr: number[] }) =>
-      createGroup({ name, member_id_arr }),
+    mutationFn: ({ name, member_id_arr }: { name: string; member_id_arr: number[] }) => {
+      if (!clerk_id) {
+        throw new Error("User ID not valid");
+      }
+      return createGroup({ name, member_id_arr, clerk_id });
+    },
     onSuccess: () => {
       form.reset();
       toast.success("Group created");
@@ -83,10 +89,11 @@ export default function CreateGroupDialog() {
 
   const handleSubmit = async (values: z.infer<typeof createGroupFormSchema>) => {
     await create({ name: values.name, member_id_arr: values.members });
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>

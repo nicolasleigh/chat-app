@@ -10,28 +10,38 @@ import (
 )
 
 const createGroup = `-- name: CreateGroup :exec
-WITH conv AS (
-    INSERT INTO conversations (
-        name, is_group
-    ) VALUES (
-        $1, true
+WITH 
+    clerk_users AS (
+        SELECT id 
+        FROM users 
+        WHERE clerk_id = $1
+    ),
+    conv AS (
+        INSERT INTO conversations (
+            name, is_group
+        ) VALUES (
+            $2, true
+        )
+        RETURNING id
     )
-    RETURNING id
-)
 INSERT INTO conversation_members (
     conversation_id, member_id
 ) 
-SELECT id, $2 
-FROM conv
+SELECT conv.id, member_id
+FROM conv, unnest($3::bigint[]) as member_id
+UNION
+SELECT conv.id, clerk_users.id
+FROM conv, clerk_users
 `
 
 type CreateGroupParams struct {
-	Name     *string `json:"name"`
-	MemberID int64   `json:"member_id"`
+	ClerkID string  `json:"clerk_id" validate:"required"`
+	Name    *string `json:"name"`
+	Column3 []int64 `json:"column_3"`
 }
 
 func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) error {
-	_, err := q.db.Exec(ctx, createGroup, arg.Name, arg.MemberID)
+	_, err := q.db.Exec(ctx, createGroup, arg.ClerkID, arg.Name, arg.Column3)
 	return err
 }
 

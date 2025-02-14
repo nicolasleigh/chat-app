@@ -35,16 +35,25 @@ SELECT member.conversation_id FROM conversation_members member
 JOIN clerk_users ON clerk_users.id = member.member_id;
 
 -- name: CreateGroup :exec
-WITH conv AS (
-    INSERT INTO conversations (
-        name, is_group
-    ) VALUES (
-        $1, true
+WITH 
+    clerk_users AS (
+        SELECT id 
+        FROM users 
+        WHERE clerk_id = $1
+    ),
+    conv AS (
+        INSERT INTO conversations (
+            name, is_group
+        ) VALUES (
+            $2, true
+        )
+        RETURNING id
     )
-    RETURNING id
-)
 INSERT INTO conversation_members (
     conversation_id, member_id
 ) 
-SELECT id, $2 
-FROM conv;
+SELECT conv.id, member_id
+FROM conv, unnest($3::bigint[]) as member_id
+UNION
+SELECT conv.id, clerk_users.id
+FROM conv, clerk_users;

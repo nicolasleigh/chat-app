@@ -69,6 +69,7 @@ func (app *application) getAllConversations(w http.ResponseWriter, r *http.Reque
 
 func (app *application) createGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	idString := r.PathValue("clerk_id")
 
 	var body struct {
 		Name          string  `json:"name"`
@@ -83,14 +84,14 @@ func (app *application) createGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, member_id := range body.Member_id_arr {
-		payload.Name = &body.Name
-		payload.MemberID = member_id
-		err = app.query.CreateGroup(ctx, payload)
-		if err != nil {
-			badRequestResponse(w, err)
-			return
-		}
+	payload.Name = &body.Name
+	payload.Column3 = body.Member_id_arr
+	payload.ClerkID = idString
+
+	err = app.query.CreateGroup(ctx, payload)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
 	}
 
 	err = writeJSON(w, http.StatusCreated, "Group created")

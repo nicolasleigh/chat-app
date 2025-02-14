@@ -61,9 +61,10 @@ export async function getAllConversations({
 type createGroupParams = {
   member_id_arr: number[];
   name: string;
+  clerk_id: string;
 };
-export async function createGroup({ member_id_arr, name }: createGroupParams) {
-  const response = await fetch(`${baseUrl}/group/create`, {
+export async function createGroup({ member_id_arr, name, clerk_id }: createGroupParams) {
+  const response = await fetch(`${baseUrl}/group/create/${clerk_id}`, {
     method: "POST",
     body: JSON.stringify({
       member_id_arr,

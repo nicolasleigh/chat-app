@@ -23,7 +23,7 @@ func (app *application) NewRouter() http.Handler {
 	mux.HandleFunc("GET /conversation/{clerk_id}/{conversation_id}", app.getConversation)
 	mux.HandleFunc("GET /conversations/{clerk_id}", app.getAllConversations)
 	// Group
-	mux.HandleFunc("POST /group/create", app.createGroup)
+	mux.HandleFunc("POST /group/create/{clerk_id}", app.createGroup)
 
 	return mux
 }
