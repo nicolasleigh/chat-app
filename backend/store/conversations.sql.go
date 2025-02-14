@@ -162,3 +162,24 @@ func (q *Queries) GetConversationsByClerkId(ctx context.Context, clerkID string)
 	}
 	return items, nil
 }
+
+const leaveGroup = `-- name: LeaveGroup :exec
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+DELETE FROM conversation_members 
+WHERE conversation_members.member_id IN (SELECT id FROM clerk_users)
+AND conversation_members.conversation_id = $2
+`
+
+type LeaveGroupParams struct {
+	ClerkID        string `json:"clerk_id" validate:"required"`
+	ConversationID int64  `json:"conversation_id"`
+}
+
+func (q *Queries) LeaveGroup(ctx context.Context, arg LeaveGroupParams) error {
+	_, err := q.db.Exec(ctx, leaveGroup, arg.ClerkID, arg.ConversationID)
+	return err
+}

@@ -26,6 +26,7 @@ func (app *application) NewRouter() http.Handler {
 	mux.HandleFunc("GET /conversations/{clerk_id}", app.getAllConversations)
 	// Group
 	mux.HandleFunc("POST /group/create/{clerk_id}", app.createGroup)
+	mux.HandleFunc("DELETE /group/leave/{clerk_id}/{conversation_id}", app.leaveGroup)
 
 	return mux
 }

@@ -1,20 +1,35 @@
+import { getConversationLastMessage } from "@/api/messages";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Id } from "@/convex/_generated/dataModel";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 type Props = {
-  id: Id<"conversations">;
+  id: number;
   name: string;
-  lastMessageSender?: string;
-  lastMessageContent?: string;
-  unseenCount: number;
+  // unseenCount: number;
+  lastMessageId: number | null;
+  clerkId: string;
 };
 
-export default function GroupConversationItem({ id, name, lastMessageSender, lastMessageContent, unseenCount }: Props) {
+export default function GroupConversationItem({
+  id,
+  name,
+  // unseenCount,
+  lastMessageId: message_id,
+  clerkId,
+}: Props) {
+  const { data: lastMessage } = useQuery({
+    queryKey: ["lastMessage", message_id],
+    queryFn: () => {
+      if (message_id) {
+        return getConversationLastMessage({ message_id });
+      }
+      return null;
+    },
+  });
   return (
-    <Link href={`/conversations/${id}`} className='w-full'>
+    <Link href={`/conversations/${id}?clerk_id=${clerkId}`} className='w-full'>
       <Card className='p-2 flex flex-row items-center justify-between'>
         <div className='flex flex-row items-center gap-4 truncate'>
           <Avatar>
@@ -22,20 +37,20 @@ export default function GroupConversationItem({ id, name, lastMessageSender, las
           </Avatar>
           <div className='flex flex-col truncate'>
             <h4 className='truncate'>{name}</h4>
-            {lastMessageSender && lastMessageContent ? (
+            {lastMessage?.sender_username && lastMessage.content ? (
               <span className='text-sm text-muted-foreground flex truncate overflow-ellipsis'>
                 <p className='font-semibold'>
-                  {lastMessageSender}
+                  {lastMessage?.sender_username}
                   {":"}&nbsp;
                 </p>
-                <p className='truncate overflow-ellipsis'>{lastMessageContent}</p>
+                <p className='truncate overflow-ellipsis'>{lastMessage.content}</p>
               </span>
             ) : (
               <p className='text-sm text-muted-foreground truncate'>Start the conversation!</p>
             )}
           </div>
         </div>
-        {unseenCount ? <Badge>{unseenCount}</Badge> : null}
+        {/* {unseenCount ? <Badge>{unseenCount}</Badge> : null} */}
       </Card>
     </Link>
   );

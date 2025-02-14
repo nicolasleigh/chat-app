@@ -150,7 +150,7 @@ func (app *application) getFriends(w http.ResponseWriter, r *http.Request) {
 func (app *application) deleteFriend(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	idStr := r.PathValue("conversation_id")
-	conversation_id,err := strconv.Atoi(idStr)
+	conversation_id, err := strconv.Atoi(idStr)
 
 	// var payload store.DeleteFriendParams
 

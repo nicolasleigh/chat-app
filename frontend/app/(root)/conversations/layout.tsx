@@ -34,9 +34,10 @@ export default function ConversationsLayout({ children }: { children: ReactNode 
                   key={conv[0].conversation_id}
                   id={conv[0].conversation_id}
                   name={conv[0].conversation_name}
+                  lastMessageId={conv[0].last_message_id}
+                  clerkId={clerk_id || ""}
                 />
               ) : (
-                // /> //   // unseenCount={conv.unseenCount} //   // lastMessageSender={conv.lastMessage?.sender} //   // lastMessageContent={conv.lastMessage?.content} //   // name={conv.conversation.name || ""} //   // id={conv.conversation._id} //   // key={conv.conversation._id} //   conversation={conv} // <GroupConversationItem
                 <DMConversationItem
                   key={conv[0].conversation_id}
                   id={conv[0].conversation_id}

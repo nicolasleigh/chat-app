@@ -66,3 +66,13 @@ FROM conv, unnest($3::bigint[]) as member_id
 UNION
 SELECT conv.id, clerk_users.id
 FROM conv, clerk_users;
+
+-- name: LeaveGroup :exec
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+DELETE FROM conversation_members 
+WHERE conversation_members.member_id IN (SELECT id FROM clerk_users)
+AND conversation_members.conversation_id = $2;
