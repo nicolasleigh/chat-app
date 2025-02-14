@@ -6,7 +6,7 @@ WITH
         WHERE users.clerk_id = $1
     ),
     conv AS (
-        SELECT id, name, is_group
+        SELECT id, name, is_group, last_message_id
         FROM conversations 
         WHERE conversations.id = $2
     ),
@@ -26,7 +26,8 @@ SELECT
     (SELECT last_seen_message_id FROM current_user_member) as current_user_last_seen_message_id,
     conv.name as conversation_name, 
     conv.is_group,
-    conv.id as conversation_id
+    conv.id as conversation_id,
+    conv.last_message_id
 FROM conversation_members member
 JOIN conv ON conv.id = member.conversation_id
 JOIN users ON users.id = member.member_id

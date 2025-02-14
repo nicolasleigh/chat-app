@@ -18,8 +18,8 @@ func (app *application) getConversation(w http.ResponseWriter, r *http.Request) 
 	}
 
 	payload := store.GetConversationParams{
-		ClerkID: clerkIdString,
-		ConversationID:      int64(conversation_id),
+		ClerkID:        clerkIdString,
+		ConversationID: int64(conversation_id),
 	}
 
 	data, err := app.query.GetConversation(ctx, payload)
@@ -48,8 +48,8 @@ func (app *application) getAllConversations(w http.ResponseWriter, r *http.Reque
 
 	for _, conversation_id := range conversationIds {
 		payload := store.GetConversationParams{
-			ClerkID: clerk_id,
-			ConversationID:      int64(conversation_id),
+			ClerkID:        clerk_id,
+			ConversationID: int64(conversation_id),
 		}
 		data, err := app.query.GetConversation(ctx, payload)
 		if err != nil {

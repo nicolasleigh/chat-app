@@ -42,6 +42,34 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) er
 	return err
 }
 
+const getConversationLastMessage = `-- name: GetConversationLastMessage :one
+SELECT sender_id, users.username as sender_username, users.image_url as sender_image_url, content, type 
+FROM messages
+JOIN users ON users.id = sender_id
+WHERE messages.id = $1
+`
+
+type GetConversationLastMessageRow struct {
+	SenderID       int64   `json:"sender_id"`
+	SenderUsername string  `json:"sender_username" validate:"required,min=1,max=100"`
+	SenderImageUrl *string `json:"sender_image_url" validate:"required,url"`
+	Content        *string `json:"content"`
+	Type           *string `json:"type"`
+}
+
+func (q *Queries) GetConversationLastMessage(ctx context.Context, id int64) (GetConversationLastMessageRow, error) {
+	row := q.db.QueryRow(ctx, getConversationLastMessage, id)
+	var i GetConversationLastMessageRow
+	err := row.Scan(
+		&i.SenderID,
+		&i.SenderUsername,
+		&i.SenderImageUrl,
+		&i.Content,
+		&i.Type,
+	)
+	return i, err
+}
+
 const getMessages = `-- name: GetMessages :many
 SELECT u.id as user_id, u.username, u.image_url, u.email, m.id as message_id, m.conversation_id as conversation_id ,m.type, m.content, m.created_at FROM messages m
 JOIN users u ON u.id = m.sender_id

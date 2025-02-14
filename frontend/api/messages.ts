@@ -73,3 +73,34 @@ export async function markReadMessage({ conversation_id, member_id, last_seen_me
     throw new Error(`HTTP error: response.status`);
   }
 }
+
+const getConversationLastMessageSchema = z.object({
+  sender_id: z.number(),
+  sender_username: z.string(),
+  sender_image_url: z.string(),
+  content: z.string(),
+  type: z.string(),
+});
+
+type getConversationLastMessageParams = {
+  message_id: number;
+};
+export async function getConversationLastMessage({
+  message_id,
+}: getConversationLastMessageParams): Promise<z.infer<typeof getConversationLastMessageSchema>> {
+  const response = await fetch(`${baseUrl}/message/${message_id}`, {
+    method: "GET",
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+  let data = await response.json();
+  console.log("lastmessage:", data);
+  try {
+    data = getConversationLastMessageSchema.parse(data);
+  } catch (error) {
+    console.error(error);
+  }
+
+  return data;
+}
