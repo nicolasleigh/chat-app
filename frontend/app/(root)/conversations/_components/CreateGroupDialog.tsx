@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -25,12 +24,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 // import { api } from "@/convex/_generated/api";
-import useMutationState from "@/hooks/useMutationState";
 import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 // import { useQuery } from "convex/react";
-import { ConvexError } from "convex/values";
 import { CirclePlus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -44,7 +41,6 @@ const createGroupFormSchema = z.object({
 
 export default function CreateGroupDialog() {
   const [open, setOpen] = useState(false);
-  // const friends = useQuery(api.friends.get);
   const { userId: clerk_id } = useAuth();
   const { data: friends } = useQuery({
     queryKey: ["friends"],
@@ -56,7 +52,6 @@ export default function CreateGroupDialog() {
     },
   });
 
-  // const { mutate: createGroup, pending } = useMutationState(api.conversation.createGroup);
   const { mutate: create, isPending } = useMutation({
     mutationFn: ({ name, member_id_arr }: { name: string; member_id_arr: number[] }) => {
       if (!clerk_id) {

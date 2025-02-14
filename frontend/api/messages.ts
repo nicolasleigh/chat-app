@@ -53,3 +53,23 @@ export async function createMessage({ sender_id, conversation_id, content, type 
   const data = await response.json();
   return data;
 }
+
+type markReadMessageParams = {
+  last_seen_message_id: number;
+  conversation_id: number;
+  member_id: number;
+};
+export async function markReadMessage({ conversation_id, member_id, last_seen_message_id }: markReadMessageParams) {
+  const response = await fetch(`${baseUrl}/message/mark_read`, {
+    method: "POST",
+    body: JSON.stringify({
+      conversation_id,
+      member_id,
+      last_seen_message_id,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error: response.status`);
+  }
+}

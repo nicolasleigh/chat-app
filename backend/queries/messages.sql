@@ -16,3 +16,8 @@ WITH messages_id AS (
 UPDATE conversations
 SET last_message_id = (SELECT id FROM messages_id)
 WHERE conversations.id = $2;
+
+-- name: MarkReadMessage :exec
+UPDATE conversation_members 
+SET last_seen_message_id = $3
+WHERE conversation_id = $1 AND member_id = $2;

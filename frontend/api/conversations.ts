@@ -12,7 +12,7 @@ const conversationSchema = z.array(
     other_member_username: z.string(),
     other_member_email: z.string(),
     other_member_image_url: z.string(),
-    other_member_last_message_id: z.nullable(z.number()),
+    other_member_last_seen_message_id: z.nullable(z.number()),
     conversation_id: z.number(),
     conversation_name: z.nullable(z.string()),
     is_group: z.boolean(),

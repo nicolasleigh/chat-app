@@ -57,3 +57,26 @@ func (app *application) getMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (app *application) markReadMessage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var payload store.MarkReadMessageParams
+
+	err := readJSON(w,r,&payload)
+	if err != nil {
+		badRequestResponse(w,err)
+		return
+	}
+
+	err = app.query.MarkReadMessage(ctx,payload)
+	if err != nil {
+		badRequestResponse(w,err)
+		return
+	}
+
+	err = writeJSON(w,http.StatusOK,nil)
+	if err != nil {
+		badRequestResponse(w,err)
+		return
+	}
+}

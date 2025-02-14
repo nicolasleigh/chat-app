@@ -29,7 +29,13 @@ export default function ConversationsLayout({ children }: { children: ReactNode 
             <p className='w-full h-full flex items-center justify-center'>No conversations found</p>
           ) : (
             conversations.map((conv) => {
-              return conv[0].is_group ? null : (
+              return conv[0].is_group ? (
+                <GroupConversationItem
+                  key={conv[0].conversation_id}
+                  id={conv[0].conversation_id}
+                  name={conv[0].conversation_name}
+                />
+              ) : (
                 // /> //   // unseenCount={conv.unseenCount} //   // lastMessageSender={conv.lastMessage?.sender} //   // lastMessageContent={conv.lastMessage?.content} //   // name={conv.conversation.name || ""} //   // id={conv.conversation._id} //   // key={conv.conversation._id} //   conversation={conv} // <GroupConversationItem
                 <DMConversationItem
                   key={conv[0].conversation_id}

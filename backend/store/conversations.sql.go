@@ -56,42 +56,51 @@ WITH
         SELECT id, name, is_group
         FROM conversations 
         WHERE conversations.id = $2
+    ),
+    current_user_member AS (
+        SELECT last_seen_message_id
+        FROM conversation_members
+        WHERE member_id = (SELECT id FROM clerk_users)
+          AND conversation_id = $2
     )
 SELECT 
-    clerk_users.id as current_user_id,
+    (SELECT id FROM clerk_users) as current_user_id,
     users.id as other_member_id, 
     users.username as other_member_username, 
     users.email as other_member_email, 
     users.image_url as other_member_image_url, 
-    member.last_unseen_message_id as other_member_last_unseen_message_id, 
+    member.last_seen_message_id as other_member_last_seen_message_id, 
+    (SELECT last_seen_message_id FROM current_user_member) as current_user_last_seen_message_id,
     conv.name as conversation_name, 
     conv.is_group,
     conv.id as conversation_id
 FROM conversation_members member
 JOIN conv ON conv.id = member.conversation_id
-JOIN clerk_users ON clerk_users.id != member.member_id
 JOIN users ON users.id = member.member_id
+WHERE member.member_id != (SELECT id FROM clerk_users)
+  AND member.conversation_id = $2
 `
 
 type GetConversationParams struct {
-	ClerkID string `json:"clerk_id" validate:"required"`
-	ID      int64  `json:"id"`
+	ClerkID        string `json:"clerk_id" validate:"required"`
+	ConversationID int64  `json:"conversation_id"`
 }
 
 type GetConversationRow struct {
-	CurrentUserID                  int64   `json:"current_user_id"`
-	OtherMemberID                  int64   `json:"other_member_id"`
-	OtherMemberUsername            string  `json:"other_member_username" validate:"required,min=1,max=100"`
-	OtherMemberEmail               string  `json:"other_member_email" validate:"required,email,max=255"`
-	OtherMemberImageUrl            *string `json:"other_member_image_url" validate:"required,url"`
-	OtherMemberLastUnseenMessageID *int64  `json:"other_member_last_unseen_message_id"`
-	ConversationName               *string `json:"conversation_name"`
-	IsGroup                        bool    `json:"is_group"`
-	ConversationID                 int64   `json:"conversation_id"`
+	CurrentUserID                int64   `json:"current_user_id"`
+	OtherMemberID                int64   `json:"other_member_id"`
+	OtherMemberUsername          string  `json:"other_member_username" validate:"required,min=1,max=100"`
+	OtherMemberEmail             string  `json:"other_member_email" validate:"required,email,max=255"`
+	OtherMemberImageUrl          *string `json:"other_member_image_url" validate:"required,url"`
+	OtherMemberLastSeenMessageID *int64  `json:"other_member_last_seen_message_id"`
+	CurrentUserLastSeenMessageID *int64  `json:"current_user_last_seen_message_id"`
+	ConversationName             *string `json:"conversation_name"`
+	IsGroup                      bool    `json:"is_group"`
+	ConversationID               int64   `json:"conversation_id"`
 }
 
 func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams) ([]GetConversationRow, error) {
-	rows, err := q.db.Query(ctx, getConversation, arg.ClerkID, arg.ID)
+	rows, err := q.db.Query(ctx, getConversation, arg.ClerkID, arg.ConversationID)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +114,8 @@ func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams
 			&i.OtherMemberUsername,
 			&i.OtherMemberEmail,
 			&i.OtherMemberImageUrl,
-			&i.OtherMemberLastUnseenMessageID,
+			&i.OtherMemberLastSeenMessageID,
+			&i.CurrentUserLastSeenMessageID,
 			&i.ConversationName,
 			&i.IsGroup,
 			&i.ConversationID,

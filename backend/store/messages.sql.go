@@ -90,3 +90,20 @@ func (q *Queries) GetMessages(ctx context.Context, conversationID int64) ([]GetM
 	}
 	return items, nil
 }
+
+const markReadMessage = `-- name: MarkReadMessage :exec
+UPDATE conversation_members 
+SET last_seen_message_id = $3
+WHERE conversation_id = $1 AND member_id = $2
+`
+
+type MarkReadMessageParams struct {
+	ConversationID    int64  `json:"conversation_id"`
+	MemberID          int64  `json:"member_id"`
+	LastSeenMessageID *int64 `json:"last_seen_message_id"`
+}
+
+func (q *Queries) MarkReadMessage(ctx context.Context, arg MarkReadMessageParams) error {
+	_, err := q.db.Exec(ctx, markReadMessage, arg.ConversationID, arg.MemberID, arg.LastSeenMessageID)
+	return err
+}
