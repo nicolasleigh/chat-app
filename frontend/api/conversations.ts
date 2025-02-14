@@ -12,10 +12,11 @@ const conversationSchema = z.array(
     other_member_username: z.string(),
     other_member_email: z.string(),
     other_member_image_url: z.string(),
-    other_member_last_message_id: z.nullable(z.number()),
+    other_member_last_seen_message_id: z.nullable(z.number()),
     conversation_id: z.number(),
     conversation_name: z.nullable(z.string()),
     is_group: z.boolean(),
+    last_message_id: z.nullable(z.number()),
   })
 );
 export async function getConversation({
@@ -56,4 +57,35 @@ export async function getAllConversations({
   }
 
   return data;
+}
+
+type createGroupParams = {
+  member_id_arr: number[];
+  name: string;
+  clerk_id: string;
+};
+export async function createGroup({ member_id_arr, name, clerk_id }: createGroupParams) {
+  const response = await fetch(`${baseUrl}/group/create/${clerk_id}`, {
+    method: "POST",
+    body: JSON.stringify({
+      member_id_arr,
+      name,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+}
+
+type leaveGroupParams = {
+  clerk_id: string;
+  conversation_id: number;
+};
+export async function leaveGroup({ clerk_id, conversation_id }: leaveGroupParams) {
+  const response = await fetch(`${baseUrl}/group/leave/${clerk_id}/${conversation_id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
 }

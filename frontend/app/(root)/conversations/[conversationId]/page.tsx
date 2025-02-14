@@ -58,7 +58,7 @@ export default function ConversationPage({ params }: Props) {
       <LeaveGroupDialog conversationId={conversationId} open={leaveGroupDialogOpen} setOpen={setLeaveGroupDialogOpen} />
       <Header
         name={
-          (conversation[0].is_group ? conversation[0].conversation_name : conversation[0].other_member_username) || ""
+          (conversation[0]?.is_group ? conversation[0].conversation_name : conversation[0].other_member_username) || ""
         }
         imageUrl={conversation[0].is_group ? undefined : conversation[0].other_member_image_url}
         options={

@@ -1,5 +1,7 @@
 "use client";
 
+import { createGroup } from "@/api/conversations";
+import { getFriends } from "@/api/friends";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,26 +23,50 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { api } from "@/convex/_generated/api";
-import useMutationState from "@/hooks/useMutationState";
+// import { api } from "@/convex/_generated/api";
+import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "convex/react";
-import { ConvexError } from "convex/values";
+import { useMutation, useQuery } from "@tanstack/react-query";
+// import { useQuery } from "convex/react";
 import { CirclePlus, X } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 const createGroupFormSchema = z.object({
   name: z.string().min(1, { message: "This field can't be empty" }),
-  members: z.string().array().min(1, { message: "You must select at least 1 friend" }),
+  members: z.number().array().min(1, { message: "You must select at least 1 friend" }),
 });
 
 export default function CreateGroupDialog() {
-  const friends = useQuery(api.friends.get);
+  const [open, setOpen] = useState(false);
+  const { userId: clerk_id } = useAuth();
+  const { data: friends } = useQuery({
+    queryKey: ["friends"],
+    queryFn: () => {
+      if (!clerk_id) {
+        throw new Error("User not found");
+      }
+      return getFriends({ clerk_id });
+    },
+  });
 
-  const { mutate: createGroup, pending } = useMutationState(api.conversation.createGroup);
+  const { mutate: create, isPending } = useMutation({
+    mutationFn: ({ name, member_id_arr }: { name: string; member_id_arr: number[] }) => {
+      if (!clerk_id) {
+        throw new Error("User ID not valid");
+      }
+      return createGroup({ name, member_id_arr, clerk_id });
+    },
+    onSuccess: () => {
+      form.reset();
+      toast.success("Group created");
+    },
+    onError: () => {
+      toast.error("Failed to create group");
+    },
+  });
 
   const form = useForm<z.infer<typeof createGroupFormSchema>>({
     resolver: zodResolver(createGroupFormSchema),
@@ -53,22 +79,16 @@ export default function CreateGroupDialog() {
   const members = form.watch("members", []);
 
   const unselectedFriends = useMemo(() => {
-    return friends ? friends.filter((friend) => !members.includes(friend._id)) : [];
+    return friends ? friends.filter((friend) => !members.includes(friend.id)) : [];
   }, [members.length, friends?.length]);
 
   const handleSubmit = async (values: z.infer<typeof createGroupFormSchema>) => {
-    await createGroup({ name: values.name, members: values.members })
-      .then(() => {
-        form.reset();
-        toast.success("Group created");
-      })
-      .catch((error) => {
-        toast.error(error instanceof ConvexError ? error.data : "Unexpected error");
-      });
+    await create({ name: values.name, member_id_arr: values.members });
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
@@ -122,16 +142,16 @@ export default function CreateGroupDialog() {
                           {unselectedFriends.map((friend) => {
                             return (
                               <DropdownMenuCheckboxItem
-                                key={friend._id}
+                                key={friend.id}
                                 className='flex items-center gap-2 w-full p-2'
                                 onCheckedChange={(checked) => {
                                   if (checked) {
-                                    form.setValue("members", [...members, friend._id]);
+                                    form.setValue("members", [...members, friend.id]);
                                   }
                                 }}
                               >
                                 <Avatar className='w-8 h-8'>
-                                  <AvatarImage src={friend.imageUrl} />
+                                  <AvatarImage src={friend.image_url} />
                                   <AvatarFallback>{friend.username.substring(0, 1)}</AvatarFallback>
                                 </Avatar>
                                 <h4 className='truncate'>{friend.username}</h4>
@@ -149,13 +169,13 @@ export default function CreateGroupDialog() {
             {members && members.length ? (
               <Card className='flex items-center gap-3 overflow-x-auto w-full h-24 p-2 no-scrollbar'>
                 {friends
-                  ?.filter((friend) => members.includes(friend._id))
+                  ?.filter((friend) => members.includes(friend.id))
                   .map((friend) => {
                     return (
-                      <div key={friend._id} className='flex flex-col items-center gap-1'>
+                      <div key={friend.id} className='flex flex-col items-center gap-1'>
                         <div className='relative'>
                           <Avatar>
-                            <AvatarImage src={friend.imageUrl} />
+                            <AvatarImage src={friend.image_url} />
                             <AvatarFallback>{friend.username.substring(0, 1)}</AvatarFallback>
                           </Avatar>
                           <X
@@ -163,7 +183,7 @@ export default function CreateGroupDialog() {
                             onClick={() =>
                               form.setValue(
                                 "members",
-                                members.filter((id) => id !== friend._id)
+                                members.filter((id) => id !== friend.id)
                               )
                             }
                           />
@@ -175,7 +195,7 @@ export default function CreateGroupDialog() {
               </Card>
             ) : null}
             <DialogFooter>
-              <Button disabled={pending} type='submit' className='w-full'>
+              <Button disabled={isPending} type='submit' className='w-full'>
                 Create
               </Button>
             </DialogFooter>

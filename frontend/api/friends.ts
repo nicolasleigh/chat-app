@@ -52,26 +52,36 @@ export async function acceptRequest({ request_id, column_1, column_2 }: acceptRe
   });
 }
 
+const getFriendsSchema = z.array(
+  z.object({
+    id: z.number(),
+    username: z.string(),
+    email: z.string(),
+    clerk_id: z.string(),
+    image_url: z.string(),
+  })
+);
 type getFriendsParams = {
   clerk_id: string;
 };
-export async function getFriends({ clerk_id }: getFriendsParams) {
-  await fetch(`${baseUrl}/friends/${clerk_id}`, {
+export async function getFriends({ clerk_id }: getFriendsParams): Promise<z.infer<typeof getFriendsSchema>> {
+  const response = await fetch(`${baseUrl}/friends/${clerk_id}`, {
     method: "GET",
   });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+  let data = await response.json();
+  data = getFriendsSchema.parse(data);
+  return data;
 }
 
 type deleteFriendParams = {
-  column_1: number;
-  column_2: number;
+  conversation_id: number;
 };
-export async function deleteFriend({ column_1, column_2 }: deleteFriendParams) {
-  await fetch(`${baseUrl}/friend`, {
+export async function deleteFriend({ conversation_id }: deleteFriendParams) {
+  await fetch(`${baseUrl}/friend/${conversation_id}`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ column_1, column_2 }),
   });
 }
 

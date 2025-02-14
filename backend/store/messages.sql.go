@@ -11,32 +11,63 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createMessage = `-- name: CreateMessage :one
-INSERT INTO messages (
-  sender_id, conversation_id, type, content
-) VALUES (
-  $1, $2, $3, $4
+const createMessage = `-- name: CreateMessage :exec
+WITH messages_id AS (
+    INSERT INTO messages (
+        sender_id, conversation_id, type, content
+    ) VALUES (
+        $1, $2, $3, $4
+    )
+    RETURNING id
 )
-RETURNING id
+UPDATE conversations
+SET last_message_id = (SELECT id FROM messages_id)
+WHERE conversations.id = $2
 `
 
 type CreateMessageParams struct {
-	SenderID       int64   `json:"sender_id"`
-	ConversationID int64   `json:"conversation_id"`
-	Type           *string `json:"type"`
-	Content        *string `json:"content"`
+	SenderID int64   `json:"sender_id"`
+	ID       int64   `json:"id"`
+	Type     *string `json:"type"`
+	Content  *string `json:"content"`
 }
 
-func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createMessage,
+func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) error {
+	_, err := q.db.Exec(ctx, createMessage,
 		arg.SenderID,
-		arg.ConversationID,
+		arg.ID,
 		arg.Type,
 		arg.Content,
 	)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	return err
+}
+
+const getConversationLastMessage = `-- name: GetConversationLastMessage :one
+SELECT sender_id, users.username as sender_username, users.image_url as sender_image_url, content, type 
+FROM messages
+JOIN users ON users.id = sender_id
+WHERE messages.id = $1
+`
+
+type GetConversationLastMessageRow struct {
+	SenderID       int64   `json:"sender_id"`
+	SenderUsername string  `json:"sender_username" validate:"required,min=1,max=100"`
+	SenderImageUrl *string `json:"sender_image_url" validate:"required,url"`
+	Content        *string `json:"content"`
+	Type           *string `json:"type"`
+}
+
+func (q *Queries) GetConversationLastMessage(ctx context.Context, id int64) (GetConversationLastMessageRow, error) {
+	row := q.db.QueryRow(ctx, getConversationLastMessage, id)
+	var i GetConversationLastMessageRow
+	err := row.Scan(
+		&i.SenderID,
+		&i.SenderUsername,
+		&i.SenderImageUrl,
+		&i.Content,
+		&i.Type,
+	)
+	return i, err
 }
 
 const getMessages = `-- name: GetMessages :many
@@ -86,4 +117,21 @@ func (q *Queries) GetMessages(ctx context.Context, conversationID int64) ([]GetM
 		return nil, err
 	}
 	return items, nil
+}
+
+const markReadMessage = `-- name: MarkReadMessage :exec
+UPDATE conversation_members 
+SET last_seen_message_id = $3
+WHERE conversation_id = $1 AND member_id = $2
+`
+
+type MarkReadMessageParams struct {
+	ConversationID    int64  `json:"conversation_id"`
+	MemberID          int64  `json:"member_id"`
+	LastSeenMessageID *int64 `json:"last_seen_message_id"`
+}
+
+func (q *Queries) MarkReadMessage(ctx context.Context, arg MarkReadMessageParams) error {
+	_, err := q.db.Exec(ctx, markReadMessage, arg.ConversationID, arg.MemberID, arg.LastSeenMessageID)
+	return err
 }

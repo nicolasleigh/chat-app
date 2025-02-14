@@ -1,3 +1,4 @@
+import { leaveGroup } from "@/api/conversations";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,9 +9,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { api } from "@/convex/_generated/api";
-import useMutationState from "@/hooks/useMutationState";
-import { ConvexError } from "convex/values";
+import { useAuth } from "@clerk/nextjs";
+import { useMutation } from "@tanstack/react-query";
 import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 
@@ -21,16 +21,24 @@ type Props = {
 };
 
 export default function LeaveGroupDialog({ conversationId, open, setOpen }: Props) {
-  const { mutate: leaveGroup, pending } = useMutationState(api.conversation.leaveGroup);
+  const { userId: clerk_id } = useAuth();
+  const { mutate: leave, isPending } = useMutation({
+    mutationFn: () => {
+      if (!clerk_id) {
+        throw new Error("User not found");
+      }
+      return leaveGroup({ clerk_id, conversation_id: conversationId });
+    },
+    onSuccess: () => {
+      toast.success("Group left");
+    },
+    onError: () => {
+      toast.error("Failed to leave group");
+    },
+  });
 
   const handleLeaveGroup = async () => {
-    leaveGroup({ conversationId })
-      .then(() => {
-        toast.success("Group left");
-      })
-      .catch((error) => {
-        toast.error(error instanceof ConvexError ? error.data : "Unexpected error");
-      });
+    leave();
   };
 
   return (
@@ -44,8 +52,8 @@ export default function LeaveGroupDialog({ conversationId, open, setOpen }: Prop
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction disabled={pending} onClick={handleLeaveGroup}>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction disabled={isPending} onClick={handleLeaveGroup}>
             Leave
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -70,22 +70,17 @@ func (q *Queries) CreateRequest(ctx context.Context, arg CreateRequestParams) er
 }
 
 const deleteFriend = `-- name: DeleteFriend :exec
-WITH deleted_friend AS (
-  DELETE FROM friends 
-  WHERE user_a_id = LEAST($1::bigint, $2::bigint) AND user_b_id = GREATEST($1::bigint, $2::bigint)
-  RETURNING conversation_id
+WITH deleted_friends AS (
+    DELETE FROM friends
+    WHERE conversation_id = $1
+    RETURNING id, user_a_id, user_b_id, created_at, conversation_id
 )
 DELETE FROM conversations
-WHERE id = (SELECT conversation_id FROM deleted_friend)
+WHERE conversations.id = $1
 `
 
-type DeleteFriendParams struct {
-	Column1 int64 `json:"column_1"`
-	Column2 int64 `json:"column_2"`
-}
-
-func (q *Queries) DeleteFriend(ctx context.Context, arg DeleteFriendParams) error {
-	_, err := q.db.Exec(ctx, deleteFriend, arg.Column1, arg.Column2)
+func (q *Queries) DeleteFriend(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteFriend, id)
 	return err
 }
 
@@ -149,6 +144,7 @@ func (q *Queries) GetFriends(ctx context.Context, clerkID string) ([]User, error
 }
 
 const getRequests = `-- name: GetRequests :many
+
 WITH clerk_users AS (
     SELECT id 
     FROM users 
@@ -170,6 +166,16 @@ type GetRequestsRow struct {
 	RequestCount int64   `json:"request_count"`
 }
 
+// Legacy:
+// WITH deleted_friend AS (
+//
+//	DELETE FROM friends
+//	WHERE user_a_id = LEAST($1::bigint, $2::bigint) AND user_b_id = GREATEST($1::bigint, $2::bigint)
+//	RETURNING conversation_id
+//
+// )
+// DELETE FROM conversations
+// WHERE id = (SELECT conversation_id FROM deleted_friend);
 func (q *Queries) GetRequests(ctx context.Context, clerkID string) ([]GetRequestsRow, error) {
 	rows, err := q.db.Query(ctx, getRequests, clerkID)
 	if err != nil {

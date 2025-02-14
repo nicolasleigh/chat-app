@@ -1,0 +1,2 @@
+ALTER TABLE conversation_members
+RENAME COLUMN last_message_id TO last_unseen_message_id

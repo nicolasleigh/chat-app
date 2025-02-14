@@ -1,3 +1,4 @@
+import { deleteFriend } from "@/api/friends";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,9 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { api } from "@/convex/_generated/api";
-import useMutationState from "@/hooks/useMutationState";
-import { ConvexError } from "convex/values";
+import { useMutation } from "@tanstack/react-query";
 import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 
@@ -21,16 +20,20 @@ type Props = {
 };
 
 export default function RemoveFriendDialog({ conversationId, open, setOpen }: Props) {
-  const { mutate: removeFriend, pending } = useMutationState(api.friend.remove);
+  const { mutate: removeFriend, isPending } = useMutation({
+    mutationFn: () => {
+      return deleteFriend({ conversation_id: conversationId });
+    },
+    onSuccess: () => {
+      toast.success("Friend delete successfully");
+    },
+    onError: () => {
+      toast.error("Failed to delete friend");
+    },
+  });
 
   const handleRemoveFriend = async () => {
-    removeFriend({ conversationId })
-      .then(() => {
-        toast.success("Removed friend");
-      })
-      .catch((error) => {
-        toast.error(error instanceof ConvexError ? error.data : "Unexpected error");
-      });
+    removeFriend();
   };
 
   return (
@@ -44,8 +47,8 @@ export default function RemoveFriendDialog({ conversationId, open, setOpen }: Pr
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction disabled={pending} onClick={handleRemoveFriend}>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction disabled={isPending} onClick={handleRemoveFriend}>
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -4,10 +4,26 @@ JOIN users u ON u.id = m.sender_id
 WHERE conversation_id = $1
 ORDER BY m.created_at DESC;
 
--- name: CreateMessage :one
-INSERT INTO messages (
-  sender_id, conversation_id, type, content
-) VALUES (
-  $1, $2, $3, $4
+-- name: CreateMessage :exec
+WITH messages_id AS (
+    INSERT INTO messages (
+        sender_id, conversation_id, type, content
+    ) VALUES (
+        $1, $2, $3, $4
+    )
+    RETURNING id
 )
-RETURNING id;
+UPDATE conversations
+SET last_message_id = (SELECT id FROM messages_id)
+WHERE conversations.id = $2;
+
+-- name: MarkReadMessage :exec
+UPDATE conversation_members 
+SET last_seen_message_id = $3
+WHERE conversation_id = $1 AND member_id = $2;
+
+-- name: GetConversationLastMessage :one
+SELECT sender_id, users.username as sender_username, users.image_url as sender_image_url, content, type 
+FROM messages
+JOIN users ON users.id = sender_id
+WHERE messages.id = $1;
