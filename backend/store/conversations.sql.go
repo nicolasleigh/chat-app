@@ -63,7 +63,7 @@ SELECT
     users.username as other_member_username, 
     users.email as other_member_email, 
     users.image_url as other_member_image_url, 
-    member.last_message_id as other_member_last_message_id, 
+    member.last_unseen_message_id as other_member_last_unseen_message_id, 
     conv.name as conversation_name, 
     conv.is_group,
     conv.id as conversation_id
@@ -79,15 +79,15 @@ type GetConversationParams struct {
 }
 
 type GetConversationRow struct {
-	CurrentUserID            int64   `json:"current_user_id"`
-	OtherMemberID            int64   `json:"other_member_id"`
-	OtherMemberUsername      string  `json:"other_member_username" validate:"required,min=1,max=100"`
-	OtherMemberEmail         string  `json:"other_member_email" validate:"required,email,max=255"`
-	OtherMemberImageUrl      *string `json:"other_member_image_url" validate:"required,url"`
-	OtherMemberLastMessageID *int64  `json:"other_member_last_message_id"`
-	ConversationName         *string `json:"conversation_name"`
-	IsGroup                  bool    `json:"is_group"`
-	ConversationID           int64   `json:"conversation_id"`
+	CurrentUserID                  int64   `json:"current_user_id"`
+	OtherMemberID                  int64   `json:"other_member_id"`
+	OtherMemberUsername            string  `json:"other_member_username" validate:"required,min=1,max=100"`
+	OtherMemberEmail               string  `json:"other_member_email" validate:"required,email,max=255"`
+	OtherMemberImageUrl            *string `json:"other_member_image_url" validate:"required,url"`
+	OtherMemberLastUnseenMessageID *int64  `json:"other_member_last_unseen_message_id"`
+	ConversationName               *string `json:"conversation_name"`
+	IsGroup                        bool    `json:"is_group"`
+	ConversationID                 int64   `json:"conversation_id"`
 }
 
 func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams) ([]GetConversationRow, error) {
@@ -105,7 +105,7 @@ func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams
 			&i.OtherMemberUsername,
 			&i.OtherMemberEmail,
 			&i.OtherMemberImageUrl,
-			&i.OtherMemberLastMessageID,
+			&i.OtherMemberLastUnseenMessageID,
 			&i.ConversationName,
 			&i.IsGroup,
 			&i.ConversationID,

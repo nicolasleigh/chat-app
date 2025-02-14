@@ -16,7 +16,7 @@ SELECT
     users.username as other_member_username, 
     users.email as other_member_email, 
     users.image_url as other_member_image_url, 
-    member.last_message_id as other_member_last_message_id, 
+    member.last_unseen_message_id as other_member_last_unseen_message_id, 
     conv.name as conversation_name, 
     conv.is_group,
     conv.id as conversation_id

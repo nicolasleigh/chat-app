@@ -11,32 +11,35 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createMessage = `-- name: CreateMessage :one
-INSERT INTO messages (
-  sender_id, conversation_id, type, content
-) VALUES (
-  $1, $2, $3, $4
+const createMessage = `-- name: CreateMessage :exec
+WITH messages_id AS (
+    INSERT INTO messages (
+        sender_id, conversation_id, type, content
+    ) VALUES (
+        $1, $2, $3, $4
+    )
+    RETURNING id
 )
-RETURNING id
+UPDATE conversations
+SET last_message_id = (SELECT id FROM messages_id)
+WHERE conversations.id = $2
 `
 
 type CreateMessageParams struct {
-	SenderID       int64   `json:"sender_id"`
-	ConversationID int64   `json:"conversation_id"`
-	Type           *string `json:"type"`
-	Content        *string `json:"content"`
+	SenderID int64   `json:"sender_id"`
+	ID       int64   `json:"id"`
+	Type     *string `json:"type"`
+	Content  *string `json:"content"`
 }
 
-func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createMessage,
+func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) error {
+	_, err := q.db.Exec(ctx, createMessage,
 		arg.SenderID,
-		arg.ConversationID,
+		arg.ID,
 		arg.Type,
 		arg.Content,
 	)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	return err
 }
 
 const getMessages = `-- name: GetMessages :many

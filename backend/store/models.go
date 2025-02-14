@@ -16,10 +16,10 @@ type Conversation struct {
 }
 
 type ConversationMember struct {
-	ID             int64  `json:"id"`
-	MemberID       int64  `json:"member_id"`
-	ConversationID int64  `json:"conversation_id"`
-	LastMessageID  *int64 `json:"last_message_id"`
+	ID                  int64  `json:"id"`
+	MemberID            int64  `json:"member_id"`
+	ConversationID      int64  `json:"conversation_id"`
+	LastUnseenMessageID *int64 `json:"last_unseen_message_id"`
 }
 
 type Friend struct {

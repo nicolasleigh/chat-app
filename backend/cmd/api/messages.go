@@ -17,9 +17,9 @@ func (app *application) createMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	message_id, err := app.query.CreateMessage(ctx, payload)
+	 err = app.query.CreateMessage(ctx, payload)
 
-	err = writeJSON(w, http.StatusCreated, message_id)
+	err = writeJSON(w, http.StatusCreated, "Message created")
 	if err != nil {
 		badRequestResponse(w, err)
 		return
