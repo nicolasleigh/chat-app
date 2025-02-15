@@ -47,7 +47,7 @@ WITH
     clerk_users AS (
         SELECT id 
         FROM users 
-        WHERE users.clerk_id = $1
+        WHERE clerk_id = $1
     ),
     conv_member AS (
         SELECT conversation_id, last_seen_message_id
@@ -55,13 +55,19 @@ WITH
         WHERE member_id IN (SELECT id FROM clerk_users)
     ),
     current_user_last_seen_time AS (
-        SELECT created_at FROM messages
-        WHERE messages.id IN (SELECT last_seen_message_id FROM conv_member)
+        SELECT conversation_id, created_at AS last_seen_time
+        FROM messages
+        WHERE id IN (SELECT last_seen_message_id FROM conv_member)
     )
-SELECT COUNT(*) as unseen_message_count, conversation_id FROM messages
-WHERE created_at > (SELECT created_at FROM current_user_last_seen_time)
+SELECT 
+    COUNT(*) AS unseen_message_count, 
+    messages.conversation_id 
+FROM messages
+JOIN current_user_last_seen_time
+    ON messages.conversation_id = current_user_last_seen_time.conversation_id
+WHERE messages.created_at > current_user_last_seen_time.last_seen_time
 AND messages.conversation_id IN (SELECT conversation_id FROM conv_member)
-GROUP BY conversation_id
+GROUP BY messages.conversation_id
 `
 
 type GetAllUnseenMessageCountRow struct {
