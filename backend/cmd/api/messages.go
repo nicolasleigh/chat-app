@@ -102,3 +102,19 @@ func (app *application) getConversationLastMessage(w http.ResponseWriter, r *htt
 		return
 	}
 }
+
+func (app *application) getAllUnseenMessageCount(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	clerk_id := r.PathValue("clerk_id")
+
+	data,err := app.query.GetAllUnseenMessageCount(ctx,clerk_id)
+	if err != nil {
+		badRequestResponse(w,err)
+		return
+	}
+	err = writeJSON(w,http.StatusOK,data)
+	if err != nil {
+		badRequestResponse(w,err)
+		return
+	}
+}

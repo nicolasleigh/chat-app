@@ -1,3 +1,4 @@
+import { deleteGroup } from "@/api/conversations";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,9 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { api } from "@/convex/_generated/api";
-import useMutationState from "@/hooks/useMutationState";
-import { ConvexError } from "convex/values";
+import { useMutation } from "@tanstack/react-query";
 import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 
@@ -18,19 +17,24 @@ type Props = {
   conversationId: number;
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  clerkId: string;
 };
 
-export default function DeleteGroupDialog({ conversationId, open, setOpen }: Props) {
-  const { mutate: deleteGroup, pending } = useMutationState(api.conversation.deleteGroup);
+export default function DeleteGroupDialog({ conversationId, open, setOpen, clerkId }: Props) {
+  const { mutate: deleteGp, isPending } = useMutation({
+    mutationFn: () => {
+      return deleteGroup({ clerk_id: clerkId, conversation_id: conversationId });
+    },
+    onSuccess: () => {
+      toast.success("Group Deleted");
+    },
+    onError: () => {
+      toast.error("Failed to delete group");
+    },
+  });
 
   const handleDeleteGroup = async () => {
-    deleteGroup({ conversationId })
-      .then(() => {
-        toast.success("Group deleted");
-      })
-      .catch((error) => {
-        toast.error(error instanceof ConvexError ? error.data : "Unexpected error");
-      });
+    deleteGp();
   };
 
   return (
@@ -43,8 +47,8 @@ export default function DeleteGroupDialog({ conversationId, open, setOpen }: Pro
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction disabled={pending} onClick={handleDeleteGroup}>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction disabled={isPending} onClick={handleDeleteGroup}>
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

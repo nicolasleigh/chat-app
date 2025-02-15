@@ -54,6 +54,7 @@ export default function ConversationPage({ params }: Props) {
         conversationId={conversationId}
         open={deleteGroupDialogOpen}
         setOpen={setDeleteGroupDialogOpen}
+        clerkId={clerk_id}
       />
       <LeaveGroupDialog conversationId={conversationId} open={leaveGroupDialogOpen} setOpen={setLeaveGroupDialogOpen} />
       <Header

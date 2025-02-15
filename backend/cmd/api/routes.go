@@ -21,12 +21,14 @@ func (app *application) NewRouter() http.Handler {
 	mux.HandleFunc("GET /messages/{conversation_id}", app.getMessages)
 	mux.HandleFunc("POST /message/mark_read", app.markReadMessage)
 	mux.HandleFunc("GET /message/{message_id}", app.getConversationLastMessage)
+	mux.HandleFunc("GET /message/unseen/{clerk_id}", app.getAllUnseenMessageCount)
 	// Conversation
 	mux.HandleFunc("GET /conversation/{clerk_id}/{conversation_id}", app.getConversation)
 	mux.HandleFunc("GET /conversations/{clerk_id}", app.getAllConversations)
 	// Group
 	mux.HandleFunc("POST /group/create/{clerk_id}", app.createGroup)
 	mux.HandleFunc("DELETE /group/leave/{clerk_id}/{conversation_id}", app.leaveGroup)
+	mux.HandleFunc("DELETE /group/delete/{clerk_id}/{conversation_id}", app.deleteGroup)
 
 	return mux
 }

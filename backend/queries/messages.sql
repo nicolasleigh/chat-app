@@ -27,3 +27,30 @@ SELECT sender_id, users.username as sender_username, users.image_url as sender_i
 FROM messages
 JOIN users ON users.id = sender_id
 WHERE messages.id = $1;
+
+-- name: GetAllUnseenMessageCount :many
+WITH 
+    clerk_users AS (
+        SELECT id 
+        FROM users 
+        WHERE clerk_id = $1
+    ),
+    conv_member AS (
+        SELECT conversation_id, last_seen_message_id
+        FROM conversation_members 
+        WHERE member_id IN (SELECT id FROM clerk_users)
+    ),
+    current_user_last_seen_time AS (
+        SELECT conversation_id, created_at AS last_seen_time
+        FROM messages
+        WHERE id IN (SELECT last_seen_message_id FROM conv_member)
+    )
+SELECT 
+    COUNT(*) AS unseen_message_count, 
+    messages.conversation_id 
+FROM messages
+JOIN current_user_last_seen_time
+    ON messages.conversation_id = current_user_last_seen_time.conversation_id
+WHERE messages.created_at > current_user_last_seen_time.last_seen_time
+AND messages.conversation_id IN (SELECT conversation_id FROM conv_member)
+GROUP BY messages.conversation_id;

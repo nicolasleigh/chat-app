@@ -1,17 +1,12 @@
 "use client";
 
-// import { api } from "@/convex/_generated/api";
-// import { Id } from "@/convex/_generated/dataModel";
-import useConversation from "@/hooks/useConversation";
-// import { usePaginatedQuery } from "convex/react";
-import Message from "./Message";
-import useMutationState from "@/hooks/useMutationState";
-import { Dispatch, SetStateAction, useEffect } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import CallRoom from "./CallRoom";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { getMessages, markReadMessage } from "@/api/messages";
-import { useParams } from "next/navigation";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import useConversation from "@/hooks/useConversation";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Dispatch, SetStateAction, useEffect } from "react";
+import CallRoom from "./CallRoom";
+import Message from "./Message";
 
 type Props = {
   members: {

@@ -42,6 +42,59 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) er
 	return err
 }
 
+const getAllUnseenMessageCount = `-- name: GetAllUnseenMessageCount :many
+WITH 
+    clerk_users AS (
+        SELECT id 
+        FROM users 
+        WHERE clerk_id = $1
+    ),
+    conv_member AS (
+        SELECT conversation_id, last_seen_message_id
+        FROM conversation_members 
+        WHERE member_id IN (SELECT id FROM clerk_users)
+    ),
+    current_user_last_seen_time AS (
+        SELECT conversation_id, created_at AS last_seen_time
+        FROM messages
+        WHERE id IN (SELECT last_seen_message_id FROM conv_member)
+    )
+SELECT 
+    COUNT(*) AS unseen_message_count, 
+    messages.conversation_id 
+FROM messages
+JOIN current_user_last_seen_time
+    ON messages.conversation_id = current_user_last_seen_time.conversation_id
+WHERE messages.created_at > current_user_last_seen_time.last_seen_time
+AND messages.conversation_id IN (SELECT conversation_id FROM conv_member)
+GROUP BY messages.conversation_id
+`
+
+type GetAllUnseenMessageCountRow struct {
+	UnseenMessageCount int64 `json:"unseen_message_count"`
+	ConversationID     int64 `json:"conversation_id"`
+}
+
+func (q *Queries) GetAllUnseenMessageCount(ctx context.Context, clerkID string) ([]GetAllUnseenMessageCountRow, error) {
+	rows, err := q.db.Query(ctx, getAllUnseenMessageCount, clerkID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllUnseenMessageCountRow
+	for rows.Next() {
+		var i GetAllUnseenMessageCountRow
+		if err := rows.Scan(&i.UnseenMessageCount, &i.ConversationID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getConversationLastMessage = `-- name: GetConversationLastMessage :one
 SELECT sender_id, users.username as sender_username, users.image_url as sender_image_url, content, type 
 FROM messages

@@ -108,7 +108,7 @@ WITH clerk_users AS (
     FROM users 
     WHERE users.clerk_id = $1
 )
-SELECT users.id, users.username, users.email, users.clerk_id, users.image_url 
+SELECT users.id, users.username, users.email, users.clerk_id, users.image_url, users.created_at 
 FROM users 
 JOIN friends ON (
     (friends.user_a_id IN (SELECT id FROM clerk_users) AND users.id = friends.user_b_id)
@@ -132,6 +132,7 @@ func (q *Queries) GetFriends(ctx context.Context, clerkID string) ([]User, error
 			&i.Email,
 			&i.ClerkID,
 			&i.ImageUrl,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

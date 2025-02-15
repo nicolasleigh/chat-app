@@ -15,7 +15,7 @@ INSERT INTO users (
 ) VALUES (
   $1, $2, $3, $4
 )
-RETURNING id, username, email, clerk_id, image_url
+RETURNING id, username, email, clerk_id, image_url, created_at
 `
 
 type CreateUserParams struct {
@@ -39,12 +39,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.ClerkID,
 		&i.ImageUrl,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, email, clerk_id, image_url FROM users 
+SELECT id, username, email, clerk_id, image_url, created_at FROM users 
 WHERE clerk_id = $1 LIMIT 1
 `
 
@@ -57,6 +58,7 @@ func (q *Queries) GetUser(ctx context.Context, clerkID string) (User, error) {
 		&i.Email,
 		&i.ClerkID,
 		&i.ImageUrl,
+		&i.CreatedAt,
 	)
 	return i, err
 }

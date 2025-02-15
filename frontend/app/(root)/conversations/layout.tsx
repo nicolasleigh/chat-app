@@ -36,6 +36,7 @@ export default function ConversationsLayout({ children }: { children: ReactNode 
                   name={conv[0].conversation_name}
                   lastMessageId={conv[0].last_message_id}
                   clerkId={clerk_id || ""}
+                  // unseenCount={conv[0].unseen_message_count || 0}
                 />
               ) : (
                 <DMConversationItem
@@ -44,7 +45,7 @@ export default function ConversationsLayout({ children }: { children: ReactNode 
                   username={conv[0].other_member_username || ""}
                   imageUrl={conv[0].other_member_image_url || ""}
                   clerkId={clerk_id || ""}
-                  // unseenCount={conv.unseenCount}
+                  // unseenCount={conv[0].unseen_message_count || 0}
                   lastMessageId={conv[0].last_message_id}
                 />
               );
