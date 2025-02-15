@@ -119,38 +119,6 @@ func (q *Queries) GetMessages(ctx context.Context, conversationID int64) ([]GetM
 	return items, nil
 }
 
-const getUnseenMessageCount = `-- name: GetUnseenMessageCount :one
-WITH clerk_users AS (
-    SELECT id 
-    FROM users 
-    WHERE users.clerk_id = $1
-),  
-last_seen_id AS (
-    SELECT last_seen_message_id as id FROM conversation_members
-    WHERE member_id IN (SELECT id FROM clerk_users)
-    AND conversation_id = $2
-),
-last_seen_time AS (
-    SELECT created_at FROM messages
-    WHERE messages.id IN (SELECT id FROM last_seen_id)
-)
-SELECT COUNT(*) as unseen_message_count FROM messages
-WHERE created_at > (SELECT created_at FROM last_seen_time)
-AND messages.conversation_id = $2
-`
-
-type GetUnseenMessageCountParams struct {
-	ClerkID        string `json:"clerk_id" validate:"required"`
-	ConversationID int64  `json:"conversation_id"`
-}
-
-func (q *Queries) GetUnseenMessageCount(ctx context.Context, arg GetUnseenMessageCountParams) (int64, error) {
-	row := q.db.QueryRow(ctx, getUnseenMessageCount, arg.ClerkID, arg.ConversationID)
-	var unseen_message_count int64
-	err := row.Scan(&unseen_message_count)
-	return unseen_message_count, err
-}
-
 const markReadMessage = `-- name: MarkReadMessage :exec
 UPDATE conversation_members 
 SET last_seen_message_id = $3

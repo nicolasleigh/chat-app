@@ -1,5 +1,6 @@
 import { getConversationLastMessage } from "@/api/messages";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "lucide-react";
@@ -13,7 +14,7 @@ type Props = {
   lastMessageId: number | null;
   // lastMessageSender?: string;
   // lastMessageContent?: string;
-  // unseenCount: number;
+  unseenCount: number;
 };
 
 export default function DMConversationItem({
@@ -24,7 +25,7 @@ export default function DMConversationItem({
   lastMessageId: message_id,
   // lastMessageSender,
   // lastMessageContent,
-  // unseenCount,
+  unseenCount,
 }: Props) {
   const { data: lastMessage } = useQuery({
     queryKey: ["lastMessage", message_id],
@@ -61,7 +62,7 @@ export default function DMConversationItem({
             )}
           </div>
         </div>
-        {/* {unseenCount ? <Badge>{unseenCount}</Badge> : null} */}
+        {unseenCount ? <Badge>{unseenCount}</Badge> : null}
       </Card>
     </Link>
   );

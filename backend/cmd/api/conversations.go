@@ -38,12 +38,7 @@ func (app *application) getConversation(w http.ResponseWriter, r *http.Request) 
 func (app *application) getAllConversations(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	clerk_id := r.PathValue("clerk_id")
-	type resultType struct {
-		store.GetConversationRow
-		UnseenMessageCount int64 `json:"unseen_message_count"`
-	} 
 	var conversations [][]store.GetConversationRow
-	// var result []resultType
 
 	conversationIds, err := app.query.GetConversationsByClerkId(ctx, clerk_id)
 	if err != nil {
@@ -61,11 +56,6 @@ func (app *application) getAllConversations(w http.ResponseWriter, r *http.Reque
 			badRequestResponse(w, err)
 			return
 		}
-		// count, err := app.query.GetUnseenMessageCount(ctx,store.GetUnseenMessageCountParams(payload))
-
-		// for _, item := range data {
-		// 	result = append(result, resultType{item, count})
-		// }
 
 		conversations = append(conversations, data)
 	}

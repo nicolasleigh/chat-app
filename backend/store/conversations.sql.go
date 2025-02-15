@@ -83,6 +83,15 @@ WITH
         FROM conversation_members
         WHERE member_id = (SELECT id FROM clerk_users)
           AND conversation_id = $2
+    ),
+    current_user_last_seen_time AS (
+        SELECT created_at FROM messages
+        WHERE messages.id IN (SELECT last_seen_message_id FROM current_user_member)
+    ),
+    current_user_unseen_count AS (
+        SELECT COUNT(*) as unseen_message_count FROM messages
+        WHERE created_at > (SELECT created_at FROM current_user_last_seen_time)
+        AND messages.conversation_id = $2
     )
 SELECT 
     (SELECT id FROM clerk_users) as current_user_id,
@@ -91,7 +100,8 @@ SELECT
     users.email as other_member_email, 
     users.image_url as other_member_image_url, 
     member.last_seen_message_id as other_member_last_seen_message_id, 
-    (SELECT last_seen_message_id FROM current_user_member) as current_user_last_seen_message_id,
+    -- (SELECT last_seen_message_id FROM current_user_member) as current_user_last_seen_message_id,
+    (SELECT unseen_message_count FROM current_user_unseen_count),
     conv.name as conversation_name, 
     conv.is_group,
     conv.id as conversation_id,
@@ -115,7 +125,7 @@ type GetConversationRow struct {
 	OtherMemberEmail             string  `json:"other_member_email" validate:"required,email,max=255"`
 	OtherMemberImageUrl          *string `json:"other_member_image_url" validate:"required,url"`
 	OtherMemberLastSeenMessageID *int64  `json:"other_member_last_seen_message_id"`
-	CurrentUserLastSeenMessageID *int64  `json:"current_user_last_seen_message_id"`
+	UnseenMessageCount           int64   `json:"unseen_message_count"`
 	ConversationName             *string `json:"conversation_name"`
 	IsGroup                      bool    `json:"is_group"`
 	ConversationID               int64   `json:"conversation_id"`
@@ -138,7 +148,7 @@ func (q *Queries) GetConversation(ctx context.Context, arg GetConversationParams
 			&i.OtherMemberEmail,
 			&i.OtherMemberImageUrl,
 			&i.OtherMemberLastSeenMessageID,
-			&i.CurrentUserLastSeenMessageID,
+			&i.UnseenMessageCount,
 			&i.ConversationName,
 			&i.IsGroup,
 			&i.ConversationID,

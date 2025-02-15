@@ -17,6 +17,7 @@ const conversationSchema = z.array(
     conversation_name: z.nullable(z.string()),
     is_group: z.boolean(),
     last_message_id: z.nullable(z.number()),
+    unseen_message_count: z.nullable(z.number()),
   })
 );
 export async function getConversation({

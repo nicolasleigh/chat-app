@@ -1,5 +1,6 @@
 import { getConversationLastMessage } from "@/api/messages";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -7,18 +8,12 @@ import Link from "next/link";
 type Props = {
   id: number;
   name: string;
-  // unseenCount: number;
+  unseenCount: number;
   lastMessageId: number | null;
   clerkId: string;
 };
 
-export default function GroupConversationItem({
-  id,
-  name,
-  // unseenCount,
-  lastMessageId: message_id,
-  clerkId,
-}: Props) {
+export default function GroupConversationItem({ id, name, unseenCount, lastMessageId: message_id, clerkId }: Props) {
   const { data: lastMessage } = useQuery({
     queryKey: ["lastMessage", message_id],
     queryFn: () => {
@@ -50,7 +45,7 @@ export default function GroupConversationItem({
             )}
           </div>
         </div>
-        {/* {unseenCount ? <Badge>{unseenCount}</Badge> : null} */}
+        {unseenCount ? <Badge>{unseenCount}</Badge> : null}
       </Card>
     </Link>
   );
