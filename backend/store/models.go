@@ -9,18 +9,20 @@ import (
 )
 
 type Conversation struct {
-	ID            int64   `json:"id"`
-	Name          *string `json:"name"`
-	IsGroup       bool    `json:"is_group"`
-	LastMessageID *int64  `json:"last_message_id"`
-	GroupOwner    *int64  `json:"group_owner"`
+	ID            int64              `json:"id"`
+	Name          *string            `json:"name"`
+	IsGroup       bool               `json:"is_group"`
+	LastMessageID *int64             `json:"last_message_id"`
+	GroupOwner    *int64             `json:"group_owner"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
 type ConversationMember struct {
-	ID                int64  `json:"id"`
-	MemberID          int64  `json:"member_id"`
-	ConversationID    int64  `json:"conversation_id"`
-	LastSeenMessageID *int64 `json:"last_seen_message_id"`
+	ID                int64              `json:"id"`
+	MemberID          int64              `json:"member_id"`
+	ConversationID    int64              `json:"conversation_id"`
+	LastSeenMessageID *int64             `json:"last_seen_message_id"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 }
 
 type Friend struct {
@@ -48,9 +50,10 @@ type Message struct {
 }
 
 type User struct {
-	ID       int64   `json:"id"`
-	Username string  `json:"username" validate:"required,min=1,max=100"`
-	Email    string  `json:"email" validate:"required,email,max=255"`
-	ClerkID  string  `json:"clerk_id" validate:"required"`
-	ImageUrl *string `json:"image_url" validate:"required,url"`
+	ID        int64              `json:"id"`
+	Username  string             `json:"username" validate:"required,min=1,max=100"`
+	Email     string             `json:"email" validate:"required,email,max=255"`
+	ClerkID   string             `json:"clerk_id" validate:"required"`
+	ImageUrl  *string            `json:"image_url" validate:"required,url"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }

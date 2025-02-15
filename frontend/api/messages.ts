@@ -103,3 +103,22 @@ export async function getConversationLastMessage({
 
   return data;
 }
+
+// const getUnseenMessageCountSchema = z.object({});
+type getUnseenMessageCountParams = {
+  clerk_id: string;
+  conversation_id: number;
+};
+export async function getUnseenMessageCount({
+  clerk_id,
+  conversation_id,
+}: getUnseenMessageCountParams): Promise<number> {
+  const response = await fetch(`${baseUrl}/message/unseen/${clerk_id}/${conversation_id}`, {
+    method: "GET",
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+  const data = await response.json();
+  return data;
+}
