@@ -2,6 +2,7 @@ import { getConversationLastMessage } from "@/api/messages";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import useGetUnseenCount from "@/hooks/useGetUnseenCount";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +15,7 @@ type Props = {
   lastMessageId: number | null;
   // lastMessageSender?: string;
   // lastMessageContent?: string;
-  unseenCount: number;
+  // unseenCount: number;
 };
 
 export default function DMConversationItem({
@@ -25,8 +26,11 @@ export default function DMConversationItem({
   lastMessageId: message_id,
   // lastMessageSender,
   // lastMessageContent,
-  unseenCount,
+  // unseenCount,
 }: Props) {
+  const unseenCnt = useGetUnseenCount();
+  const cnt = unseenCnt?.find((item) => item.conversation_id === id);
+  const unseenCount = cnt ? cnt.unseen_message_count : 0;
   const { data: lastMessage } = useQuery({
     queryKey: ["lastMessage", message_id],
     queryFn: () => {

@@ -1,9 +1,7 @@
-import { getUnseenMessageCount } from "@/api/messages";
-import { useAuth } from "@clerk/nextjs";
-import { useQuery } from "@tanstack/react-query";
 import { MessageSquare, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
+import useGetUnseenCount from "./useGetUnseenCount";
 
 // [
 //   {
@@ -18,19 +16,20 @@ import { useMemo } from "react";
 
 export default function useNavigation() {
   const pathname = usePathname();
-  const { userId: clerk_id } = useAuth();
+  // const { userId: clerk_id } = useAuth();
 
   // const requestsCount = useQuery(api.requests.count);
   // const conversations = useQuery(api.conversations.get);
-  const { data } = useQuery({
-    queryKey: ["unseen_message_count"],
-    queryFn: () => {
-      if (!clerk_id) {
-        throw new Error("User id not found");
-      }
-      return getUnseenMessageCount({ clerk_id });
-    },
-  });
+  // const { data } = useQuery({
+  //   queryKey: ["unseen_message_count"],
+  //   queryFn: () => {
+  //     if (!clerk_id) {
+  //       throw new Error("User id not found");
+  //     }
+  //     return getUnseenMessageCount({ clerk_id });
+  //   },
+  // });
+  const data = useGetUnseenCount();
 
   const unseenMessagesCount = useMemo(() => {
     return data?.reduce((acc, curr) => {
