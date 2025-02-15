@@ -23,11 +23,9 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-// import { api } from "@/convex/_generated/api";
 import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-// import { useQuery } from "convex/react";
 import { CirclePlus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
