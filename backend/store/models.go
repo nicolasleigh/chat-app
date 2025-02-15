@@ -13,6 +13,7 @@ type Conversation struct {
 	Name          *string `json:"name"`
 	IsGroup       bool    `json:"is_group"`
 	LastMessageID *int64  `json:"last_message_id"`
+	GroupOwner    *int64  `json:"group_owner"`
 }
 
 type ConversationMember struct {

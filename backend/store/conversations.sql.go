@@ -18,9 +18,9 @@ WITH
     ),
     conv AS (
         INSERT INTO conversations (
-            name, is_group
+            name, is_group, group_owner
         ) VALUES (
-            $2, true
+            $2, true, (SELECT id FROM clerk_users)
         )
         RETURNING id
     )
@@ -42,6 +42,27 @@ type CreateGroupParams struct {
 
 func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) error {
 	_, err := q.db.Exec(ctx, createGroup, arg.ClerkID, arg.Name, arg.Column3)
+	return err
+}
+
+const deleteGroup = `-- name: DeleteGroup :exec
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+DELETE FROM conversations 
+WHERE group_owner IN (SELECT id FROM clerk_users)
+AND conversations.id = $2
+`
+
+type DeleteGroupParams struct {
+	ClerkID string `json:"clerk_id" validate:"required"`
+	ID      int64  `json:"id"`
+}
+
+func (q *Queries) DeleteGroup(ctx context.Context, arg DeleteGroupParams) error {
+	_, err := q.db.Exec(ctx, deleteGroup, arg.ClerkID, arg.ID)
 	return err
 }
 

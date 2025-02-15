@@ -89,3 +89,16 @@ export async function leaveGroup({ clerk_id, conversation_id }: leaveGroupParams
     throw new Error(`HTTP error: ${response.status}`);
   }
 }
+
+type deleteGroupParams = {
+  clerk_id: string;
+  conversation_id: number;
+};
+export async function deleteGroup({ clerk_id, conversation_id }: deleteGroupParams) {
+  const response = await fetch(`${baseUrl}/group/delete/${clerk_id}/${conversation_id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+}

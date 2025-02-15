@@ -122,3 +122,24 @@ func (app *application) leaveGroup(w http.ResponseWriter, r *http.Request) {
 
 	err = writeJSON(w, http.StatusOK, "success")
 }
+
+func (app *application) deleteGroup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	idString := r.PathValue("conversation_id")
+	clerk_id := r.PathValue("clerk_id")
+	conversation_id, err := strconv.Atoi(idString)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+	payload := store.DeleteGroupParams{
+		ClerkID:        clerk_id,
+		ID: int64(conversation_id),
+	}
+	err = app.query.DeleteGroup(ctx, payload)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+	err = writeJSON(w, http.StatusOK, "success")
+}

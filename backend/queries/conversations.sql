@@ -52,9 +52,9 @@ WITH
     ),
     conv AS (
         INSERT INTO conversations (
-            name, is_group
+            name, is_group, group_owner
         ) VALUES (
-            $2, true
+            $2, true, (SELECT id FROM clerk_users)
         )
         RETURNING id
     )
@@ -76,3 +76,13 @@ WITH clerk_users AS (
 DELETE FROM conversation_members 
 WHERE conversation_members.member_id IN (SELECT id FROM clerk_users)
 AND conversation_members.conversation_id = $2;
+
+-- name: DeleteGroup :exec
+WITH clerk_users AS (
+    SELECT id 
+    FROM users 
+    WHERE users.clerk_id = $1
+)
+DELETE FROM conversations 
+WHERE group_owner IN (SELECT id FROM clerk_users)
+AND conversations.id = $2;
