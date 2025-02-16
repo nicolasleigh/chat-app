@@ -4,6 +4,8 @@ import "net/http"
 
 func (app *application) NewRouter() http.Handler {
 	mux := http.NewServeMux()
+	hub := newHub()
+	go hub.run()
 
 	// Health
 	mux.HandleFunc("GET /health", healthCheckHandler)
@@ -29,6 +31,10 @@ func (app *application) NewRouter() http.Handler {
 	mux.HandleFunc("POST /group/create/{clerk_id}", app.createGroup)
 	mux.HandleFunc("DELETE /group/leave/{clerk_id}/{conversation_id}", app.leaveGroup)
 	mux.HandleFunc("DELETE /group/delete/{clerk_id}/{conversation_id}", app.deleteGroup)
+	// WebSocket
+	mux.HandleFunc("/ws/{sender_id}/{conversation_id}", func(w http.ResponseWriter, r *http.Request) {
+		app.handleWebSocket(hub, w, r)
+	})
 
 	return mux
 }

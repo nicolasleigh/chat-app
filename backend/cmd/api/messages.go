@@ -28,6 +28,10 @@ func (app *application) createMessage(w http.ResponseWriter, r *http.Request) {
 	payload.Type = body.Type
 
 	err = app.query.CreateMessage(ctx, payload)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
 
 	err = writeJSON(w, http.StatusCreated, "Message created")
 	if err != nil {
@@ -107,14 +111,14 @@ func (app *application) getAllUnseenMessageCount(w http.ResponseWriter, r *http.
 	ctx := r.Context()
 	clerk_id := r.PathValue("clerk_id")
 
-	data,err := app.query.GetAllUnseenMessageCount(ctx,clerk_id)
+	data, err := app.query.GetAllUnseenMessageCount(ctx, clerk_id)
 	if err != nil {
-		badRequestResponse(w,err)
+		badRequestResponse(w, err)
 		return
 	}
-	err = writeJSON(w,http.StatusOK,data)
+	err = writeJSON(w, http.StatusOK, data)
 	if err != nil {
-		badRequestResponse(w,err)
+		badRequestResponse(w, err)
 		return
 	}
 }

@@ -12,6 +12,7 @@
     "pgxpool",
     "sqlc",
     "sslmode",
-    "Svix"
+    "Svix",
+    "Upgrader"
   ]
 }
