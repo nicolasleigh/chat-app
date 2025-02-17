@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import useConversation from "@/hooks/useConversation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { SendHorizonal } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -16,6 +16,8 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 import MessageActionsPopover from "./MessageActionsProvider";
+import useWebsocket from "@/hooks/useWebsocket";
+import { wsUrl } from "@/api/utils";
 
 const chatMessageSchema = z.object({
   content: z.string().min(1, {
@@ -32,6 +34,7 @@ export default function ChatInput({ sender_id }: ChatInputParams) {
   const [cursorPosition, setCursorPosition] = useState(0);
   const { conversationId } = useConversation();
   const { theme } = useTheme();
+  const websocket = useWebsocket({ url: `${wsUrl}/ws/${sender_id}/${conversationId}` });
 
   // const { mutate: createMessage, pending } = useMutationState(api.message.create);
   const { mutate: sendMsg, isPending } = useMutation({
@@ -72,7 +75,10 @@ export default function ChatInput({ sender_id }: ChatInputParams) {
   };
 
   const handleSubmit = async (values: z.infer<typeof chatMessageSchema>) => {
-    sendMsg({ type: "text", content: values.content });
+    // sendMsg({ type: "text", content: values.content });
+    websocket?.send(
+      JSON.stringify({ sender_id, conversation_id: parseInt(conversationId), content: values.content, type: "text" })
+    );
   };
 
   useEffect(() => {

@@ -3,10 +3,12 @@
 import { getMessages, markReadMessage } from "@/api/messages";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useConversation from "@/hooks/useConversation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import CallRoom from "./CallRoom";
 import Message from "./Message";
+import { wsUrl } from "@/api/utils";
+import useWebsocket from "@/hooks/useWebsocket";
 
 type Props = {
   members: {
@@ -30,8 +32,10 @@ type Props = {
 
 export default function Body({ members, callType, setCallType, currentUserId }: Props) {
   const { conversationId: id } = useConversation();
-
   const conversationId = parseInt(id);
+
+  const queryClient = useQueryClient();
+  const websocket = useWebsocket({ url: `${wsUrl}/ws/${currentUserId}/${conversationId}` });
 
   const { data: messages } = useQuery({
     queryKey: ["messages", conversationId],
@@ -63,6 +67,21 @@ export default function Body({ members, callType, setCallType, currentUserId }: 
       });
     }
   }, [messages?.length, conversationId, markRead]);
+
+  useEffect(() => {
+    if (websocket) {
+      websocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const queryKey = ["messages", conversationId];
+        queryClient.invalidateQueries({ queryKey });
+        console.log(data);
+      };
+
+      return () => {
+        websocket.close();
+      };
+    }
+  }, [websocket, queryClient, currentUserId, conversationId]);
 
   const formatSeenBy = (names: string[]) => {
     switch (names.length) {

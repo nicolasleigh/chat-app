@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/clerk/clerk-sdk-go/v2"
+	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/nicolasleigh/chat-app/store"
 )
 
@@ -28,6 +31,10 @@ func (app *application) createMessage(w http.ResponseWriter, r *http.Request) {
 	payload.Type = body.Type
 
 	err = app.query.CreateMessage(ctx, payload)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
 
 	err = writeJSON(w, http.StatusCreated, "Message created")
 	if err != nil {
@@ -42,6 +49,22 @@ func (app *application) getMessages(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		badRequestResponse(w, err)
+		return
+	}
+
+	claims, ok := clerk.SessionClaimsFromContext(ctx)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"access": "unauthorized"}`))
+		return
+	}
+	usr, err := user.Get(ctx, claims.Subject)
+	if err != nil {
+		badRequestResponse(w, err)
+		return
+	}
+	if usr == nil {
+		badRequestResponse(w, fmt.Errorf("User does not exist: %v", err))
 		return
 	}
 
@@ -107,14 +130,14 @@ func (app *application) getAllUnseenMessageCount(w http.ResponseWriter, r *http.
 	ctx := r.Context()
 	clerk_id := r.PathValue("clerk_id")
 
-	data,err := app.query.GetAllUnseenMessageCount(ctx,clerk_id)
+	data, err := app.query.GetAllUnseenMessageCount(ctx, clerk_id)
 	if err != nil {
-		badRequestResponse(w,err)
+		badRequestResponse(w, err)
 		return
 	}
-	err = writeJSON(w,http.StatusOK,data)
+	err = writeJSON(w, http.StatusOK, data)
 	if err != nil {
-		badRequestResponse(w,err)
+		badRequestResponse(w, err)
 		return
 	}
 }
