@@ -31,7 +31,7 @@ type Props = {
   currentUserId: number;
 };
 
-export default function Body({ members, callType, setCallType, currentUserId }: Props) {
+export default function Body({ members, callType, setCallType, currentUserId, websocket }: Props) {
   const { conversationId: id } = useConversation();
   const conversationId = parseInt(id);
   const { token } = useAuthInfo();
@@ -39,17 +39,16 @@ export default function Body({ members, callType, setCallType, currentUserId }: 
   const queryClient = useQueryClient();
 
   // We pass token and url, but we'll handle the logic within the useWebsocket hook itself
-  const websocket = useWebsocket({
-    url: `${wsUrl}/ws/${conversationId}`,
-    token: token || "", // Pass an empty string if token is not available
-  });
+  // const websocket = useWebsocket({
+  //   url: `${wsUrl}/ws/${conversationId}`,
+  //   token: token || "", // Pass an empty string if token is not available
+  // });
 
-  useEffect(() => {
-    // You can handle token validation or websocket state here if necessary
-    if (!token) {
-      console.log("No token available, WebSocket not connected");
-    }
-  }, [token]);
+  // useEffect(() => {
+  //   if (!token) {
+  //     console.log("No token available, WebSocket not connected");
+  //   }
+  // }, [token]);
 
   // const websocket = useWebsocket({ url: `${wsUrl}/ws/${conversationId}`, token });
 
@@ -65,7 +64,6 @@ export default function Body({ members, callType, setCallType, currentUserId }: 
 
   // console.log("messages", messages);
 
-  // const { mutate: markRead } = useMutationState(api.conversation.markRead);
   const { mutate: markRead } = useMutation({
     mutationFn: ({
       conversation_id,

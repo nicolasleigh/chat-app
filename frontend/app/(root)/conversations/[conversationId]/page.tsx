@@ -12,6 +12,9 @@ import LeaveGroupDialog from "./_components/dialogs/LeaveGroupDialog";
 import { useQuery } from "@tanstack/react-query";
 import { getConversation } from "@/api/conversations";
 import { useSearchParams } from "next/navigation";
+import useWebsocket from "@/hooks/useWebsocket";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
+import { wsUrl } from "@/api/utils";
 
 type Props = {
   params: Promise<{ conversationId: number }>;
@@ -20,6 +23,7 @@ type Props = {
 export default function ConversationPage({ params }: Props) {
   const { conversationId } = React.use(params);
   const searchParams = useSearchParams();
+  const { token } = useAuthInfo();
   const clerk_id = searchParams.get("clerk_id");
   const { data: conversation } = useQuery({
     queryKey: ["conversation", conversationId],
@@ -35,6 +39,17 @@ export default function ConversationPage({ params }: Props) {
   const [deleteGroupDialogOpen, setDeleteGroupDialogOpen] = useState(false);
   const [leaveGroupDialogOpen, setLeaveGroupDialogOpen] = useState(false);
   const [callType, setCallType] = useState<"audio" | "video" | null>(null);
+
+  const websocket = useWebsocket({
+    url: `${wsUrl}/ws/${conversationId}`,
+    token: token || "", // Pass an empty string if token is not available
+  });
+
+  useEffect(() => {
+    if (!token) {
+      console.log("No token available, WebSocket not connected");
+    }
+  }, [token]);
 
   return conversation === undefined ? (
     <div className='w-full h-full flex items-center justify-center'>
@@ -76,8 +91,9 @@ export default function ConversationPage({ params }: Props) {
         callType={callType}
         setCallType={setCallType}
         currentUserId={conversation[0].current_user_id}
+        websocket={websocket}
       />
-      <ChatInput sender_id={conversation[0].current_user_id} />
+      <ChatInput sender_id={conversation[0].current_user_id} websocket={websocket} />
     </ConversationContainer>
   );
 }

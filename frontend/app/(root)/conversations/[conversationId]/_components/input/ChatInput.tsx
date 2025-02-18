@@ -28,16 +28,16 @@ const chatMessageSchema = z.object({
 type ChatInputParams = {
   sender_id: number;
 };
-export default function ChatInput({ sender_id }: ChatInputParams) {
+export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
   const { conversationId } = useConversation();
   const { theme } = useTheme();
-  const queryClient = useQueryClient();
-  const { token } = useAuthInfo();
-  const websocket = useWebsocket({ url: `${wsUrl}/ws/${conversationId}`, token });
+  // const queryClient = useQueryClient();
+  // const { token } = useAuthInfo();
+  // const websocket = useWebsocket({ url: `${wsUrl}/ws/${conversationId}`, token });
 
   const { mutate: sendMsg, isPending } = useMutation({
     mutationFn: ({ type, content }: { type: string; content: string }) =>
