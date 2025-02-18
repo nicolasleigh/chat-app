@@ -18,6 +18,7 @@ import { z } from "zod";
 import MessageActionsPopover from "./MessageActionsProvider";
 import useWebsocket from "@/hooks/useWebsocket";
 import { wsUrl } from "@/api/utils";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 const chatMessageSchema = z.object({
   content: z.string().min(1, {
@@ -34,12 +35,27 @@ export default function ChatInput({ sender_id }: ChatInputParams) {
   const [cursorPosition, setCursorPosition] = useState(0);
   const { conversationId } = useConversation();
   const { theme } = useTheme();
-  const websocket = useWebsocket({ url: `${wsUrl}/ws/${sender_id}/${conversationId}` });
+  const queryClient = useQueryClient();
+  const { token } = useAuthInfo();
+  const websocket = useWebsocket({ url: `${wsUrl}/ws/${conversationId}`, token });
 
-  // const { mutate: createMessage, pending } = useMutationState(api.message.create);
   const { mutate: sendMsg, isPending } = useMutation({
     mutationFn: ({ type, content }: { type: string; content: string }) =>
-      createMessage({ conversation_id: parseInt(conversationId), type, content, sender_id }),
+      // createMessage({ conversation_id: parseInt(conversationId), type, content, sender_id }),
+      new Promise((resolve, reject) => {
+        websocket?.send(JSON.stringify({ conversation_id: parseInt(conversationId), type, content, sender_id }));
+        if (websocket) {
+          let result = {};
+          websocket.onmessage = (event) => {
+            result = JSON.parse(event.data);
+            console.log("result", result);
+            resolve(event.data);
+          };
+          setTimeout(() => {
+            if (Object.keys(result).length === 0) reject();
+          }, 5000);
+        }
+      }),
     onSuccess: () => {
       form.reset();
       textareaRef.current?.focus();
@@ -75,10 +91,11 @@ export default function ChatInput({ sender_id }: ChatInputParams) {
   };
 
   const handleSubmit = async (values: z.infer<typeof chatMessageSchema>) => {
-    // sendMsg({ type: "text", content: values.content });
-    websocket?.send(
-      JSON.stringify({ sender_id, conversation_id: parseInt(conversationId), content: values.content, type: "text" })
-    );
+    sendMsg({ type: "text", content: values.content });
+
+    // websocket?.send(
+    //   JSON.stringify({ sender_id, conversation_id: parseInt(conversationId), content: values.content, type: "text" })
+    // );
   };
 
   useEffect(() => {

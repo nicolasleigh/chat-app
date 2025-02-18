@@ -1,12 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/clerk/clerk-sdk-go/v2"
-	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/nicolasleigh/chat-app/store"
 )
 
@@ -52,21 +49,21 @@ func (app *application) getMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, ok := clerk.SessionClaimsFromContext(ctx)
-	if !ok {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"access": "unauthorized"}`))
-		return
-	}
-	usr, err := user.Get(ctx, claims.Subject)
-	if err != nil {
-		badRequestResponse(w, err)
-		return
-	}
-	if usr == nil {
-		badRequestResponse(w, fmt.Errorf("User does not exist: %v", err))
-		return
-	}
+	// claims, ok := clerk.SessionClaimsFromContext(ctx)
+	// if !ok {
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	w.Write([]byte(`{"access": "unauthorized"}`))
+	// 	return
+	// }
+	// usr, err := user.Get(ctx, claims.Subject)
+	// if err != nil {
+	// 	badRequestResponse(w, err)
+	// 	return
+	// }
+	// if usr == nil {
+	// 	badRequestResponse(w, fmt.Errorf("User does not exist: %v", err))
+	// 	return
+	// }
 
 	messages, err := app.query.GetMessages(ctx, int64(id))
 	if err != nil {

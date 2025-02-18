@@ -4,11 +4,12 @@ import { getMessages, markReadMessage } from "@/api/messages";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useConversation from "@/hooks/useConversation";
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import CallRoom from "./CallRoom";
 import Message from "./Message";
 import { wsUrl } from "@/api/utils";
 import useWebsocket from "@/hooks/useWebsocket";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 type Props = {
   members: {
@@ -33,14 +34,32 @@ type Props = {
 export default function Body({ members, callType, setCallType, currentUserId }: Props) {
   const { conversationId: id } = useConversation();
   const conversationId = parseInt(id);
+  const { token } = useAuthInfo();
 
   const queryClient = useQueryClient();
-  const websocket = useWebsocket({ url: `${wsUrl}/ws/${currentUserId}/${conversationId}` });
+
+  // We pass token and url, but we'll handle the logic within the useWebsocket hook itself
+  const websocket = useWebsocket({
+    url: `${wsUrl}/ws/${conversationId}`,
+    token: token || "", // Pass an empty string if token is not available
+  });
+
+  useEffect(() => {
+    // You can handle token validation or websocket state here if necessary
+    if (!token) {
+      console.log("No token available, WebSocket not connected");
+    }
+  }, [token]);
+
+  // const websocket = useWebsocket({ url: `${wsUrl}/ws/${conversationId}`, token });
 
   const { data: messages } = useQuery({
     queryKey: ["messages", conversationId],
     queryFn: () => {
-      return getMessages(conversationId);
+      if (!token) {
+        throw new Error("User token not found");
+      }
+      return getMessages(conversationId, token);
     },
   });
 
@@ -81,7 +100,7 @@ export default function Body({ members, callType, setCallType, currentUserId }: 
         websocket.close();
       };
     }
-  }, [websocket, queryClient, currentUserId, conversationId]);
+  }, [websocket, queryClient, conversationId]);
 
   const formatSeenBy = (names: string[]) => {
     switch (names.length) {

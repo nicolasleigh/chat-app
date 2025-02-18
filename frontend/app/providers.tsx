@@ -17,11 +17,11 @@ const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 // https://github.com/get-convex/convex-demos/blob/main/nextjs-pages-router/pages/_app.tsx
 export default function Providers({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: Infinity,
-      },
-    },
+    // defaultOptions: {
+    //   queries: {
+    //     staleTime: Infinity,
+    //   },
+    // },
   });
 
   return (

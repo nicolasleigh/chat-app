@@ -14,9 +14,12 @@ const getMessagesSchema = z.array(
     created_at: z.string().datetime({ offset: true }),
   })
 );
-export async function getMessages(conversation_id: number): Promise<z.infer<typeof getMessagesSchema>> {
+export async function getMessages(conversation_id: number, token: string): Promise<z.infer<typeof getMessagesSchema>> {
   const response = await fetch(`${baseUrl}/messages/${conversation_id}`, {
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   if (!response.ok) {

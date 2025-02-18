@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import Header from "./_components/Header";
 import Body from "./_components/body/Body";
 import ChatInput from "./_components/input/ChatInput";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import RemoveFriendDialog from "./_components/dialogs/RemoveFriendDialog";
 import DeleteGroupDialog from "./_components/dialogs/DeleteGroupDialog";
 import LeaveGroupDialog from "./_components/dialogs/LeaveGroupDialog";
@@ -21,7 +21,6 @@ export default function ConversationPage({ params }: Props) {
   const { conversationId } = React.use(params);
   const searchParams = useSearchParams();
   const clerk_id = searchParams.get("clerk_id");
-  // const conversation = useQuery(api.conversation.get, { id: conversationId });
   const { data: conversation } = useQuery({
     queryKey: ["conversation", conversationId],
     queryFn: () => {
