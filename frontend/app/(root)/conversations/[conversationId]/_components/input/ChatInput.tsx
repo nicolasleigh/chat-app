@@ -19,6 +19,7 @@ import MessageActionsPopover from "./MessageActionsProvider";
 import useWebsocket from "@/hooks/useWebsocket";
 import { wsUrl } from "@/api/utils";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
+import { storeDataInIndexedDB } from "@/db/indexedDB";
 
 const chatMessageSchema = z.object({
   content: z.string().min(1, {
@@ -48,12 +49,14 @@ export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
           let result = {};
           websocket.onmessage = (event) => {
             result = JSON.parse(event.data);
+            const localData = JSON.parse(localStorage.getItem("messages") || "");
+            localData.push(result);
             console.log("result", result);
             resolve(event.data);
           };
           setTimeout(() => {
             if (Object.keys(result).length === 0) reject();
-          }, 5000);
+          }, 2000);
         }
       }),
     onSuccess: () => {

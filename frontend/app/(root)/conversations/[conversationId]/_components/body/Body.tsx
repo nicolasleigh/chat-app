@@ -10,6 +10,8 @@ import Message from "./Message";
 import { wsUrl } from "@/api/utils";
 import useWebsocket from "@/hooks/useWebsocket";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
+import { useMessageStore } from "@/hooks/store";
+import { getDataFromIndexedDB, storeDataInIndexedDB } from "@/db/indexedDB";
 
 type Props = {
   members: {
@@ -34,35 +36,34 @@ type Props = {
 export default function Body({ members, callType, setCallType, currentUserId, websocket }: Props) {
   const { conversationId: id } = useConversation();
   const conversationId = parseInt(id);
-  const { token } = useAuthInfo();
+  const { token, userId } = useAuthInfo();
+  const [messages, setMessages] = useState();
 
   const queryClient = useQueryClient();
 
-  // We pass token and url, but we'll handle the logic within the useWebsocket hook itself
-  // const websocket = useWebsocket({
-  //   url: `${wsUrl}/ws/${conversationId}`,
-  //   token: token || "", // Pass an empty string if token is not available
+  // const { data: messages, isSuccess } = useQuery({
+  //   queryKey: ["messages", conversationId],
+  //   queryFn: () => {
+  //     if (!token) {
+  //       throw new Error("User token not found");
+  //     }
+  //     return getMessages(conversationId, token);
+  //   },
   // });
 
-  // useEffect(() => {
-  //   if (!token) {
-  //     console.log("No token available, WebSocket not connected");
-  //   }
-  // }, [token]);
+  // if (isSuccess) {
+  //   storeDataInIndexedDB(messages);
+  // }
 
-  // const websocket = useWebsocket({ url: `${wsUrl}/ws/${conversationId}`, token });
+  useEffect(() => {
+    const fetchFromIndexedDB = async () => {
+      const data = await getDataFromIndexedDB(userId, conversationId);
+      setMessages(data);
+    };
+    fetchFromIndexedDB();
+  }, [userId]);
 
-  const { data: messages } = useQuery({
-    queryKey: ["messages", conversationId],
-    queryFn: () => {
-      if (!token) {
-        throw new Error("User token not found");
-      }
-      return getMessages(conversationId, token);
-    },
-  });
-
-  // console.log("messages", messages);
+  console.log("messages", messages);
 
   const { mutate: markRead } = useMutation({
     mutationFn: ({
@@ -85,20 +86,21 @@ export default function Body({ members, callType, setCallType, currentUserId, we
     }
   }, [messages?.length, conversationId, markRead]);
 
-  useEffect(() => {
-    if (websocket) {
-      websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const queryKey = ["messages", conversationId];
-        queryClient.invalidateQueries({ queryKey });
-        console.log(data);
-      };
+  // useEffect(() => {
+  //   if (websocket) {
+  //     websocket.onmessage = (event) => {
+  //       const data = JSON.parse(event.data);
+  //       const queryKey = ["messages", conversationId];
+  //       queryClient.invalidateQueries({ queryKey });
+  //       messages?.push(data);
+  //       console.log(data);
+  //     };
 
-      return () => {
-        websocket.close();
-      };
-    }
-  }, [websocket, queryClient, conversationId]);
+  //     return () => {
+  //       websocket.close();
+  //     };
+  //   }
+  // }, [websocket, queryClient, conversationId]);
 
   const formatSeenBy = (names: string[]) => {
     switch (names.length) {

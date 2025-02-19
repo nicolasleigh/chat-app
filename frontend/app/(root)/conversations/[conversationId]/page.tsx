@@ -15,6 +15,9 @@ import { useSearchParams } from "next/navigation";
 import useWebsocket from "@/hooks/useWebsocket";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { wsUrl } from "@/api/utils";
+import { storeDataInIndexedDB } from "@/db/indexedDB";
+import { getMessages } from "@/api/messages";
+import { useMessagesStore } from "@/hooks/useMessagesStore";
 
 type Props = {
   params: Promise<{ conversationId: number }>;
@@ -23,7 +26,7 @@ type Props = {
 export default function ConversationPage({ params }: Props) {
   const { conversationId } = React.use(params);
   const searchParams = useSearchParams();
-  const { token } = useAuthInfo();
+  const { token, userId } = useAuthInfo();
   const clerk_id = searchParams.get("clerk_id");
   const { data: conversation } = useQuery({
     queryKey: ["conversation", conversationId],
@@ -34,6 +37,26 @@ export default function ConversationPage({ params }: Props) {
       return getConversation({ conversation_id: conversationId, clerk_id });
     },
   });
+
+  // const { addMessage, isAddMessagePending, isLoading, isReady, messages: storeMessages } = useMessagesStore({ userId });
+
+  const { data: messages, isSuccess } = useQuery({
+    queryKey: ["messages", conversationId],
+    queryFn: () => {
+      if (!token) {
+        throw new Error("User token not found");
+      }
+      return getMessages(conversationId, token);
+    },
+    // gcTime: 24 * 60 * 60 * 1000, // 24H
+    // retry: false,
+  });
+
+  if (isSuccess) {
+    // messages.map((message) => {});
+    console.log(messages);
+    storeDataInIndexedDB(clerk_id, conversationId, messages);
+  }
 
   const [removeFriendDialogOpen, setRemoveFriendDialogOpen] = useState(false);
   const [deleteGroupDialogOpen, setDeleteGroupDialogOpen] = useState(false);
