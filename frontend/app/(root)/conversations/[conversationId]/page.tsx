@@ -1,25 +1,19 @@
 "use client";
 
+import { getConversation } from "@/api/conversations";
 import ConversationContainer from "@/components/shared/conversation/ConversationContainer";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
+import { useMessagesQuery } from "@/hooks/useMessagesQuery";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import Header from "./_components/Header";
 import Body from "./_components/body/Body";
-import ChatInput from "./_components/input/ChatInput";
-import React, { useEffect, useState } from "react";
-import RemoveFriendDialog from "./_components/dialogs/RemoveFriendDialog";
 import DeleteGroupDialog from "./_components/dialogs/DeleteGroupDialog";
 import LeaveGroupDialog from "./_components/dialogs/LeaveGroupDialog";
-import { useQuery } from "@tanstack/react-query";
-import { getConversation } from "@/api/conversations";
-import { useSearchParams } from "next/navigation";
-import useWebsocket from "@/hooks/useWebsocket";
-import { useAuthInfo } from "@/hooks/useAuthInfo";
-import { wsUrl } from "@/api/utils";
-import { getDataFromIndexedDB, storeDataInIndexedDB } from "@/db/indexedDB";
-import { getMessages } from "@/api/messages";
-import { useMessagesStore } from "@/hooks/useMessagesStore";
-import { useMessages } from "@/hooks/useIndexedDb";
-import { useMessagesQuery } from "@/hooks/useMessagesQuery";
+import RemoveFriendDialog from "./_components/dialogs/RemoveFriendDialog";
+import ChatInput from "./_components/input/ChatInput";
 
 type Props = {
   params: Promise<{ conversationId: number }>;
@@ -28,8 +22,7 @@ type Props = {
 export default function ConversationPage({ params }: Props) {
   const { conversationId } = React.use(params);
   const searchParams = useSearchParams();
-  const { token, userId } = useAuthInfo();
-  const [msg, setMessages] = useState();
+  const { token } = useAuthInfo();
   const clerk_id = searchParams.get("clerk_id");
   const { data: conversation } = useQuery({
     queryKey: ["conversation", conversationId],

@@ -1,17 +1,12 @@
 "use client";
 
-import { getMessages, markReadMessage } from "@/api/messages";
+import { markReadMessage } from "@/api/messages";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useConversation from "@/hooks/useConversation";
-import { QueryCache, QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import CallRoom from "./CallRoom";
 import Message from "./Message";
-import { wsUrl } from "@/api/utils";
-import useWebsocket from "@/hooks/useWebsocket";
-import { useAuthInfo } from "@/hooks/useAuthInfo";
-import { useMessageStore } from "@/hooks/store";
-import { getDataFromIndexedDB, storeDataInIndexedDB } from "@/db/indexedDB";
 
 type Props = {
   members: {
@@ -36,57 +31,6 @@ type Props = {
 export default function Body({ members, callType, setCallType, currentUserId, websocket, msg: messages }: Props) {
   const { conversationId: id } = useConversation();
   const conversationId = parseInt(id);
-  const { token, userId } = useAuthInfo();
-  // const [messages, setMessages] = useState();
-
-  const queryClient = useQueryClient();
-  // const messages = useMessageStore((state) => state.messages);
-
-  // const messages = queryCache.findAll(["messages", "33"]);
-  // console.log(messages);
-  // const cache = queryClient.getQueryCache();
-  // cache.subscribe(() => {
-  //   console.log("Cache updated");
-  //   const ca = cache.findAll({ queryKey: ["messages", id] });
-  //   console.log(ca.values());
-  //   // setMessages();
-  // });
-
-  // const { data: messages } = useQuery({
-  //   queryKey: ["messages", id],
-  //   queryFn: () => {},
-  // });
-
-  // console.log(messages);
-  // console.log(cache.findAll(["messages", id]));
-
-  // const { data: messages, refetch } = useQuery({ queryKey: ["messages", id], enabled: false });
-  // refetch();
-
-  // const { data: messages, isSuccess } = useQuery({
-  //   queryKey: ["messages", conversationId],
-  //   queryFn: () => {
-  //     if (!token) {
-  //       throw new Error("User token not found");
-  //     }
-  //     return getMessages(conversationId, token);
-  //   },
-  // });
-
-  // if (isSuccess) {
-  //   storeDataInIndexedDB(messages);
-  // }
-
-  // useEffect(() => {
-  //   const fetchFromIndexedDB = async () => {
-  //     const data = await getDataFromIndexedDB(userId, conversationId);
-  //     console.log("getDataFromIndexedDB", data);
-  //     setMessages(data);
-  //   };
-  //   fetchFromIndexedDB();
-  // }, [userId, conversationId, messages]);
-
-  // console.log("messages", messages);
 
   const { mutate: markRead } = useMutation({
     mutationFn: ({
@@ -108,22 +52,6 @@ export default function Body({ members, callType, setCallType, currentUserId, we
       });
     }
   }, [messages?.length, conversationId, markRead]);
-
-  // useEffect(() => {
-  //   if (websocket) {
-  //     websocket.onmessage = (event) => {
-  //       const data = JSON.parse(event.data);
-  //       const queryKey = ["messages", conversationId];
-  //       queryClient.invalidateQueries({ queryKey });
-  //       messages?.push(data);
-  //       console.log(data);
-  //     };
-
-  //     return () => {
-  //       websocket.close();
-  //     };
-  //   }
-  // }, [websocket, queryClient, conversationId]);
 
   const formatSeenBy = (names: string[]) => {
     switch (names.length) {

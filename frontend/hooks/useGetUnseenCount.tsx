@@ -12,6 +12,7 @@ export default function useGetUnseenCount() {
       }
       return getUnseenMessageCount({ clerk_id });
     },
+    refetchInterval: 1000,
   });
   // const queryClient = useQueryClient();
   // return queryClient.getQueryData(["unseen_message_count"]);

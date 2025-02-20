@@ -1,12 +1,12 @@
 "use client";
 
-import { createMessage } from "@/api/messages";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import useConversation from "@/hooks/useConversation";
+import { Message } from "@/hooks/useMessagesQuery";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { SendHorizonal } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -16,12 +16,6 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 import MessageActionsPopover from "./MessageActionsProvider";
-import useWebsocket from "@/hooks/useWebsocket";
-import { wsUrl } from "@/api/utils";
-import { useAuthInfo } from "@/hooks/useAuthInfo";
-import { storeDataInIndexedDB } from "@/db/indexedDB";
-import { Message } from "@/hooks/useMessagesQuery";
-import { useMessageStore } from "@/hooks/store";
 
 const chatMessageSchema = z.object({
   content: z.string().min(1, {
@@ -39,11 +33,6 @@ export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
   const { conversationId } = useConversation();
   const { theme } = useTheme();
   const queryClient = useQueryClient();
-  // const { token } = useAuthInfo();
-  // const websocket = useWebsocket({ url: `${wsUrl}/ws/${conversationId}`, token });
-
-  // const { data: messages, refetch } = useQuery({ queryKey: ["messages", conversationId], enabled: false });
-  // const addMessages = useMessageStore((state) => state.addMessages);
 
   const { mutate: sendMsg, isPending } = useMutation({
     mutationFn: ({ type, content }: { type: string; content: string }) =>
@@ -54,13 +43,7 @@ export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
           let result = {};
           websocket.onmessage = (event) => {
             result = JSON.parse(event.data);
-            // const localData = JSON.parse(localStorage.getItem("messages") || "");
-            // localData.push(result);
-            // console.log("result", result);
             resolve(result);
-            // refetch();
-            // addMessages(messages);
-            // queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
             queryClient.setQueryData(["messages", conversationId], (old: Message[] | undefined) => [
               result,
               ...(old || []),
@@ -71,17 +54,9 @@ export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
           }, 2000);
         }
       }),
-    onSuccess: (newMessage) => {
+    onSuccess: () => {
       form.reset();
       textareaRef.current?.focus();
-      // Update React Query cache
-      // queryClient.setQueryData(["messages", conversationId], (old: Message[] | undefined) => [
-      //   ...(old || []),
-      //   newMessage,
-      // ]);
-      // console.log("newMessage", newMessage);
-      // const qued = queryClient.getQueryData(["messages", conversationId]);
-      // console.log("queryData", qued);
     },
     onError: () => {
       toast.error("Failed to send message");
@@ -115,10 +90,6 @@ export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
 
   const handleSubmit = async (values: z.infer<typeof chatMessageSchema>) => {
     sendMsg({ type: "text", content: values.content });
-
-    // websocket?.send(
-    //   JSON.stringify({ sender_id, conversation_id: parseInt(conversationId), content: values.content, type: "text" })
-    // );
   };
 
   useEffect(() => {
