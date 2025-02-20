@@ -15,9 +15,11 @@ import { useSearchParams } from "next/navigation";
 import useWebsocket from "@/hooks/useWebsocket";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { wsUrl } from "@/api/utils";
-import { storeDataInIndexedDB } from "@/db/indexedDB";
+import { getDataFromIndexedDB, storeDataInIndexedDB } from "@/db/indexedDB";
 import { getMessages } from "@/api/messages";
 import { useMessagesStore } from "@/hooks/useMessagesStore";
+import { useMessages } from "@/hooks/useIndexedDb";
+import { useMessagesQuery } from "@/hooks/useMessagesQuery";
 
 type Props = {
   params: Promise<{ conversationId: number }>;
@@ -27,6 +29,7 @@ export default function ConversationPage({ params }: Props) {
   const { conversationId } = React.use(params);
   const searchParams = useSearchParams();
   const { token, userId } = useAuthInfo();
+  const [msg, setMessages] = useState();
   const clerk_id = searchParams.get("clerk_id");
   const { data: conversation } = useQuery({
     queryKey: ["conversation", conversationId],
@@ -40,33 +43,46 @@ export default function ConversationPage({ params }: Props) {
 
   // const { addMessage, isAddMessagePending, isLoading, isReady, messages: storeMessages } = useMessagesStore({ userId });
 
-  const { data: messages, isSuccess } = useQuery({
-    queryKey: ["messages", conversationId],
-    queryFn: () => {
-      if (!token) {
-        throw new Error("User token not found");
-      }
-      return getMessages(conversationId, token);
-    },
-    // gcTime: 24 * 60 * 60 * 1000, // 24H
-    // retry: false,
-  });
+  // const { data: messages, isSuccess } = useQuery({
+  //   queryKey: ["messages", conversationId],
+  //   queryFn: () => {
+  //     if (!token) {
+  //       throw new Error("User token not found");
+  //     }
+  //     return getMessages(conversationId, token);
+  //   },
+  //   // gcTime: 24 * 60 * 60 * 1000, // 24H
+  //   // retry: false,
+  // });
 
-  if (isSuccess) {
-    // messages.map((message) => {});
-    console.log(messages);
-    storeDataInIndexedDB(clerk_id, conversationId, messages);
-  }
+  // if (isSuccess) {
+  //   // messages.map((message) => {});
+  //   // console.log(messages);
+  //   storeDataInIndexedDB(clerk_id, conversationId, messages);
+  // }
+
+  // useEffect(() => {
+  //   const fetchFromIndexedDB = async () => {
+  //     const data = await getDataFromIndexedDB(userId, conversationId);
+  //     console.log("getDataFromIndexedDB", data);
+  //     setMessages(data);
+  //   };
+  //   fetchFromIndexedDB();
+  // }, [userId, conversationId, msg]);
+
+  // console.log("messages", msg);
+
+  const { messages, isLoading, isError, error, websocket } = useMessagesQuery(conversationId, token);
 
   const [removeFriendDialogOpen, setRemoveFriendDialogOpen] = useState(false);
   const [deleteGroupDialogOpen, setDeleteGroupDialogOpen] = useState(false);
   const [leaveGroupDialogOpen, setLeaveGroupDialogOpen] = useState(false);
   const [callType, setCallType] = useState<"audio" | "video" | null>(null);
 
-  const websocket = useWebsocket({
-    url: `${wsUrl}/ws/${conversationId}`,
-    token: token || "", // Pass an empty string if token is not available
-  });
+  // const websocket = useWebsocket({
+  //   url: `${wsUrl}/ws/${conversationId}`,
+  //   token: token || "", // Pass an empty string if token is not available
+  // });
 
   useEffect(() => {
     if (!token) {
@@ -115,6 +131,7 @@ export default function ConversationPage({ params }: Props) {
         setCallType={setCallType}
         currentUserId={conversation[0].current_user_id}
         websocket={websocket}
+        msg={messages}
       />
       <ChatInput sender_id={conversation[0].current_user_id} websocket={websocket} />
     </ConversationContainer>

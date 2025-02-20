@@ -14,12 +14,9 @@ interface MessageStore {
   }[];
 }
 
-export const useMessageStore = create<MessageStore>((set) => ({
-  messages: [],
-  // setWebSocket: (ws) => set({ websocket: ws }),
-  addMessages: (msg) => set((state) => ({ messages: [...state.messages, msg] })),
-  fetchMessages: async (getMsgFn) => {
-    const data = await getMsgFn();
-    set({ messages: data });
-  },
-}));
+export const useMessageStore = create((set) => {
+  return {
+    messages: [],
+    addMessages: (msg) => set((state) => ({ messages: msg })),
+  };
+});

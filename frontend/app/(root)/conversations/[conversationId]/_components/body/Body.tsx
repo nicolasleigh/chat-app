@@ -3,7 +3,7 @@
 import { getMessages, markReadMessage } from "@/api/messages";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useConversation from "@/hooks/useConversation";
-import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QueryCache, QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import CallRoom from "./CallRoom";
 import Message from "./Message";
@@ -33,13 +33,35 @@ type Props = {
   currentUserId: number;
 };
 
-export default function Body({ members, callType, setCallType, currentUserId, websocket }: Props) {
+export default function Body({ members, callType, setCallType, currentUserId, websocket, msg: messages }: Props) {
   const { conversationId: id } = useConversation();
   const conversationId = parseInt(id);
   const { token, userId } = useAuthInfo();
-  const [messages, setMessages] = useState();
+  // const [messages, setMessages] = useState();
 
   const queryClient = useQueryClient();
+  // const messages = useMessageStore((state) => state.messages);
+
+  // const messages = queryCache.findAll(["messages", "33"]);
+  // console.log(messages);
+  // const cache = queryClient.getQueryCache();
+  // cache.subscribe(() => {
+  //   console.log("Cache updated");
+  //   const ca = cache.findAll({ queryKey: ["messages", id] });
+  //   console.log(ca.values());
+  //   // setMessages();
+  // });
+
+  // const { data: messages } = useQuery({
+  //   queryKey: ["messages", id],
+  //   queryFn: () => {},
+  // });
+
+  // console.log(messages);
+  // console.log(cache.findAll(["messages", id]));
+
+  // const { data: messages, refetch } = useQuery({ queryKey: ["messages", id], enabled: false });
+  // refetch();
 
   // const { data: messages, isSuccess } = useQuery({
   //   queryKey: ["messages", conversationId],
@@ -55,15 +77,16 @@ export default function Body({ members, callType, setCallType, currentUserId, we
   //   storeDataInIndexedDB(messages);
   // }
 
-  useEffect(() => {
-    const fetchFromIndexedDB = async () => {
-      const data = await getDataFromIndexedDB(userId, conversationId);
-      setMessages(data);
-    };
-    fetchFromIndexedDB();
-  }, [userId]);
+  // useEffect(() => {
+  //   const fetchFromIndexedDB = async () => {
+  //     const data = await getDataFromIndexedDB(userId, conversationId);
+  //     console.log("getDataFromIndexedDB", data);
+  //     setMessages(data);
+  //   };
+  //   fetchFromIndexedDB();
+  // }, [userId, conversationId, messages]);
 
-  console.log("messages", messages);
+  // console.log("messages", messages);
 
   const { mutate: markRead } = useMutation({
     mutationFn: ({

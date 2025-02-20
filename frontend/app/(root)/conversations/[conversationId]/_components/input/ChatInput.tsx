@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import useConversation from "@/hooks/useConversation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { SendHorizonal } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -20,6 +20,8 @@ import useWebsocket from "@/hooks/useWebsocket";
 import { wsUrl } from "@/api/utils";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { storeDataInIndexedDB } from "@/db/indexedDB";
+import { Message } from "@/hooks/useMessagesQuery";
+import { useMessageStore } from "@/hooks/store";
 
 const chatMessageSchema = z.object({
   content: z.string().min(1, {
@@ -36,9 +38,12 @@ export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
   const [cursorPosition, setCursorPosition] = useState(0);
   const { conversationId } = useConversation();
   const { theme } = useTheme();
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
   // const { token } = useAuthInfo();
   // const websocket = useWebsocket({ url: `${wsUrl}/ws/${conversationId}`, token });
+
+  // const { data: messages, refetch } = useQuery({ queryKey: ["messages", conversationId], enabled: false });
+  // const addMessages = useMessageStore((state) => state.addMessages);
 
   const { mutate: sendMsg, isPending } = useMutation({
     mutationFn: ({ type, content }: { type: string; content: string }) =>
@@ -49,19 +54,34 @@ export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
           let result = {};
           websocket.onmessage = (event) => {
             result = JSON.parse(event.data);
-            const localData = JSON.parse(localStorage.getItem("messages") || "");
-            localData.push(result);
-            console.log("result", result);
-            resolve(event.data);
+            // const localData = JSON.parse(localStorage.getItem("messages") || "");
+            // localData.push(result);
+            // console.log("result", result);
+            resolve(result);
+            // refetch();
+            // addMessages(messages);
+            // queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+            queryClient.setQueryData(["messages", conversationId], (old: Message[] | undefined) => [
+              result,
+              ...(old || []),
+            ]);
           };
           setTimeout(() => {
             if (Object.keys(result).length === 0) reject();
           }, 2000);
         }
       }),
-    onSuccess: () => {
+    onSuccess: (newMessage) => {
       form.reset();
       textareaRef.current?.focus();
+      // Update React Query cache
+      // queryClient.setQueryData(["messages", conversationId], (old: Message[] | undefined) => [
+      //   ...(old || []),
+      //   newMessage,
+      // ]);
+      // console.log("newMessage", newMessage);
+      // const qued = queryClient.getQueryData(["messages", conversationId]);
+      // console.log("queryData", qued);
     },
     onError: () => {
       toast.error("Failed to send message");

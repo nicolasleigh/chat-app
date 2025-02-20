@@ -146,6 +146,21 @@ func (c *Client) readPump(hub *Hub, app *application) {
 			continue
 		}
 
+		// content: "hi"
+		// conversation_id: 30
+		// created_at: "2025-02-16T22:00:46+08:00"
+		// email: "jier@e.com"
+		// image_url: "https://cdn.pixabay.com/photo/2021/11/12/03/04/woman-6787784_1280.png"
+		// message_id: 46
+		// type: "text"
+		// user_id: 1
+		// username: "JJJJ"
+
+		// content: "hi"
+		// conversation_id: 30
+		// sender_id: 15
+		// type: "text"
+
 		// Store message in database
 		payload := store.CreateMessageParams{
 			Content:  msg.Content,
@@ -154,12 +169,24 @@ func (c *Client) readPump(hub *Hub, app *application) {
 			Type:     msg.Type,
 		}
 
-		if err := app.query.CreateMessage(context.Background(), payload); err != nil {
+		messageId, err := app.query.CreateMessage(context.Background(), payload)
+		if err != nil {
 			log.Printf("Error storing message: %v", err)
 			continue
 		}
 
-		hub.broadcast <- message
+		returnMessage, err := app.query.GetMessageById(context.Background(), int64(messageId))
+		if err != nil {
+			log.Printf("Error get message: %v", err)
+			continue
+		}
+
+		returnMsg, err := json.Marshal(returnMessage)
+		if err != nil {
+			log.Printf("Error marshaling message: %v", err)
+		}
+
+		hub.broadcast <- returnMsg
 	}
 }
 

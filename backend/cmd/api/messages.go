@@ -27,7 +27,7 @@ func (app *application) createMessage(w http.ResponseWriter, r *http.Request) {
 	payload.SenderID = body.SenderID
 	payload.Type = body.Type
 
-	err = app.query.CreateMessage(ctx, payload)
+	_, err = app.query.CreateMessage(ctx, payload)
 	if err != nil {
 		badRequestResponse(w, err)
 		return

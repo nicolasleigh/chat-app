@@ -15,10 +15,9 @@ func (app *application) NewServer() *http.Server {
 	errLog := slog.NewLogLogger(NewLog.Handler(), slog.LevelError)
 	clerk.SetKey(os.Getenv("CLERK_KEY"))
 
-	
 	jwtExtractor := clerkhttp.AuthorizationJWTExtractor(func(r *http.Request) string {
-	 jwt :=	r.Header.Get("Sec-WebSocket-Protocol")
-	 return jwt
+		jwt := r.Header.Get("Sec-WebSocket-Protocol")
+		return jwt
 	})
 	// wrap middlewares
 	wrappedMux := app.enableCORS(clerkhttp.WithHeaderAuthorization(jwtExtractor)(mux))
