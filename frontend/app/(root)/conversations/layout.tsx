@@ -12,6 +12,12 @@ import GroupConversationItem from "./_components/GroupConversationItem";
 
 export default function ConversationsLayout({ children }: { children: ReactNode }) {
   const { userId: clerk_id } = useAuth();
+  // const getAuthToken = async () => {
+  //   const token = await getToken();
+  //   console.log("token", token);
+  // };
+  // getAuthToken();
+
   const { data: conversations } = useQuery({
     queryKey: ["conversations"],
     queryFn: () => {

@@ -1,3 +1,4 @@
 /tmp
 .envrc
 .env
+.DS_Store

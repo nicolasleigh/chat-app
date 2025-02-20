@@ -3,8 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"log/slog"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -15,22 +14,22 @@ import (
 
 // Client represents a connected websocket client
 type Client struct {
-	conn          *websocket.Conn
-	send          chan []byte
-	userID        int64
-	conversations map[int64]bool
+	conn           *websocket.Conn
+	send           chan []byte
+	userID         string
+	conversationID int64
 }
 
-// Hub maintains the set of active clients and broadcasts messages
+// Hub maintains active clients grouped by conversation
 type Hub struct {
-	clients    map[*Client]bool
-	broadcast  chan []byte
-	register   chan *Client
-	unregister chan *Client
-	mu         sync.RWMutex
+	// Map of conversation ID to a map of clients in that conversation
+	conversations map[int64]map[*Client]bool
+	broadcast     chan []byte
+	register      chan *Client
+	unregister    chan *Client
+	mu            sync.RWMutex
 }
 
-// Message represents the websocket message structure
 type Message struct {
 	SenderID       int64   `json:"sender_id"`
 	ConversationID int64   `json:"conversation_id"`
@@ -42,16 +41,16 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true // In production, implement proper origin checking
+		return true // Implement proper origin checking in production
 	},
 }
 
 func newHub() *Hub {
 	return &Hub{
-		clients:    make(map[*Client]bool),
-		broadcast:  make(chan []byte),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
+		conversations: make(map[int64]map[*Client]bool),
+		broadcast:     make(chan []byte),
+		register:      make(chan *Client),
+		unregister:    make(chan *Client),
 	}
 }
 
@@ -60,32 +59,57 @@ func (h *Hub) run() {
 		select {
 		case client := <-h.register:
 			h.mu.Lock()
-			h.clients[client] = true
+			// Initialize conversation map if it doesn't exist
+			if _, exists := h.conversations[client.conversationID]; !exists {
+				h.conversations[client.conversationID] = make(map[*Client]bool)
+			}
+			// Add client to their conversation group
+			h.conversations[client.conversationID][client] = true
+
+			// Log connection for debugging
+			log.Printf("User %s joined conversation %d. Total participants: %d",
+				client.userID,
+				client.conversationID,
+				len(h.conversations[client.conversationID]))
 			h.mu.Unlock()
 
 		case client := <-h.unregister:
 			h.mu.Lock()
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
-				close(client.send)
+			// Remove client from their conversation group
+			if clients, exists := h.conversations[client.conversationID]; exists {
+				if _, ok := clients[client]; ok {
+					delete(clients, client)
+					close(client.send)
+
+					// Remove conversation if empty
+					if len(clients) == 0 {
+						delete(h.conversations, client.conversationID)
+					}
+
+					log.Printf("User %s left conversation %d. Remaining participants: %d",
+						client.userID,
+						client.conversationID,
+						len(clients))
+				}
 			}
 			h.mu.Unlock()
 
 		case message := <-h.broadcast:
 			var msg Message
 			if err := json.Unmarshal(message, &msg); err != nil {
-				slog.Error(fmt.Sprintf("Error unmarshaling message: %v", err))
+				log.Printf("Error unmarshaling message: %v", err)
 				continue
 			}
 
 			h.mu.RLock()
-			for client := range h.clients {
-				if _, ok := client.conversations[msg.ConversationID]; ok {
+			// Send message only to clients in the same conversation
+			if clients, exists := h.conversations[msg.ConversationID]; exists {
+				for client := range clients {
 					select {
 					case client.send <- message:
 					default:
 						close(client.send)
-						delete(h.clients, client)
+						delete(clients, client)
 					}
 				}
 			}
@@ -104,16 +128,38 @@ func (c *Client) readPump(hub *Hub, app *application) {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				slog.Error(err.Error())
+				log.Printf("error: %v", err)
 			}
 			break
 		}
 
 		var msg Message
 		if err := json.Unmarshal(message, &msg); err != nil {
-			slog.Error(fmt.Sprintf("Error unmarshaling message: %v", err))
+			log.Printf("Error unmarshaling message: %v", err)
 			continue
 		}
+
+		// Validate that the message is for the correct conversation
+		if msg.ConversationID != c.conversationID {
+			log.Printf("Warning: User %s tried to send message to conversation %d while in conversation %d",
+				c.userID, msg.ConversationID, c.conversationID)
+			continue
+		}
+
+		// content: "hi"
+		// conversation_id: 30
+		// created_at: "2025-02-16T22:00:46+08:00"
+		// email: "jier@e.com"
+		// image_url: "https://cdn.pixabay.com/photo/2021/11/12/03/04/woman-6787784_1280.png"
+		// message_id: 46
+		// type: "text"
+		// user_id: 1
+		// username: "JJJJ"
+
+		// content: "hi"
+		// conversation_id: 30
+		// sender_id: 15
+		// type: "text"
 
 		// Store message in database
 		payload := store.CreateMessageParams{
@@ -123,12 +169,24 @@ func (c *Client) readPump(hub *Hub, app *application) {
 			Type:     msg.Type,
 		}
 
-		if err := app.query.CreateMessage(context.Background(), payload); err != nil {
-			slog.Error(fmt.Sprintf("Error storing message: %v", err))
+		messageId, err := app.query.CreateMessage(context.Background(), payload)
+		if err != nil {
+			log.Printf("Error storing message: %v", err)
 			continue
 		}
 
-		hub.broadcast <- message
+		returnMessage, err := app.query.GetMessageById(context.Background(), int64(messageId))
+		if err != nil {
+			log.Printf("Error get message: %v", err)
+			continue
+		}
+
+		returnMsg, err := json.Marshal(returnMessage)
+		if err != nil {
+			log.Printf("Error marshaling message: %v", err)
+		}
+
+		hub.broadcast <- returnMsg
 	}
 }
 
@@ -153,34 +211,50 @@ func (c *Client) writePump() {
 }
 
 func (app *application) handleWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	user_id, err := strconv.Atoi(r.PathValue("sender_id"))
+	conversationID, err := strconv.ParseInt(r.PathValue("conversation_id"), 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
+		return
+	}
+
+	clerkUser, err := getClerkUser(r.Context())
 	if err != nil {
 		badRequestResponse(w, err)
 		return
 	}
-	conversation_id, err := strconv.Atoi(r.PathValue("conversation_id"))
-	if err != nil {
-		badRequestResponse(w, err)
+
+	// userID := getUserIDFromRequest(r) // Implement this based on your auth system
+	userID := clerkUser.ID
+
+	// Validate that the user has access to this conversation
+	if !app.hasAccessToConversation(userID, conversationID) {
+		http.Error(w, "Unauthorized access to conversation", http.StatusForbidden)
 		return
 	}
-	userID := int64(user_id)
-	conversationID := int64(conversation_id)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error upgrading connection: %v", err))
+		log.Printf("Error upgrading connection: %v", err)
 		return
 	}
 
 	client := &Client{
-		conn:          conn,
-		send:          make(chan []byte, 256),
-		userID:        userID,
-		conversations: map[int64]bool{conversationID: true},
+		conn:           conn,
+		send:           make(chan []byte, 256),
+		userID:         userID,
+		conversationID: conversationID,
 	}
+
 	hub.register <- client
 
 	// Start goroutines for pumping messages
 	go client.writePump()
 	go client.readPump(hub, app)
+}
+
+// Helper function to check if a user has access to a conversation
+func (app *application) hasAccessToConversation(userID string, conversationID int64) bool {
+	// Implement your access control logic here
+	// Example: Check if the user is a member of the conversation in your database
+	return true
 }

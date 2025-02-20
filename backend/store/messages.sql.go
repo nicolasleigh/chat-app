@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createMessage = `-- name: CreateMessage :exec
+const createMessage = `-- name: CreateMessage :one
 WITH messages_id AS (
     INSERT INTO messages (
         sender_id, conversation_id, type, content
@@ -23,6 +23,7 @@ WITH messages_id AS (
 UPDATE conversations
 SET last_message_id = (SELECT id FROM messages_id)
 WHERE conversations.id = $2
+RETURNING (SELECT id FROM messages_id) as message_id
 `
 
 type CreateMessageParams struct {
@@ -32,14 +33,16 @@ type CreateMessageParams struct {
 	Content  *string `json:"content"`
 }
 
-func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) error {
-	_, err := q.db.Exec(ctx, createMessage,
+func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createMessage,
 		arg.SenderID,
 		arg.ID,
 		arg.Type,
 		arg.Content,
 	)
-	return err
+	var message_id int64
+	err := row.Scan(&message_id)
+	return message_id, err
 }
 
 const getAllUnseenMessageCount = `-- name: GetAllUnseenMessageCount :many
@@ -123,8 +126,43 @@ func (q *Queries) GetConversationLastMessage(ctx context.Context, id int64) (Get
 	return i, err
 }
 
+const getMessageById = `-- name: GetMessageById :one
+SELECT u.id as user_id, u.username, u.image_url, u.email, m.id as message_id, m.conversation_id as conversation_id, m.type, m.content, m.created_at FROM messages m
+JOIN users u ON u.id = m.sender_id
+WHERE m.id = $1
+`
+
+type GetMessageByIdRow struct {
+	UserID         int64              `json:"user_id"`
+	Username       string             `json:"username" validate:"required,min=1,max=100"`
+	ImageUrl       *string            `json:"image_url" validate:"required,url"`
+	Email          string             `json:"email" validate:"required,email,max=255"`
+	MessageID      int64              `json:"message_id"`
+	ConversationID int64              `json:"conversation_id"`
+	Type           *string            `json:"type"`
+	Content        *string            `json:"content"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetMessageById(ctx context.Context, id int64) (GetMessageByIdRow, error) {
+	row := q.db.QueryRow(ctx, getMessageById, id)
+	var i GetMessageByIdRow
+	err := row.Scan(
+		&i.UserID,
+		&i.Username,
+		&i.ImageUrl,
+		&i.Email,
+		&i.MessageID,
+		&i.ConversationID,
+		&i.Type,
+		&i.Content,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getMessages = `-- name: GetMessages :many
-SELECT u.id as user_id, u.username, u.image_url, u.email, m.id as message_id, m.conversation_id as conversation_id ,m.type, m.content, m.created_at FROM messages m
+SELECT u.id as user_id, u.username, u.image_url, u.email, m.id as message_id, m.conversation_id as conversation_id, m.type, m.content, m.created_at FROM messages m
 JOIN users u ON u.id = m.sender_id
 WHERE conversation_id = $1
 ORDER BY m.created_at DESC

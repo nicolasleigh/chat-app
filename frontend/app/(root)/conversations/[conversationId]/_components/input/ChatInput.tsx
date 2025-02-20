@@ -1,10 +1,10 @@
 "use client";
 
-import { createMessage } from "@/api/messages";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import useConversation from "@/hooks/useConversation";
+import { Message } from "@/hooks/useMessagesQuery";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import EmojiPicker, { Theme } from "emoji-picker-react";
@@ -16,8 +16,6 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 import MessageActionsPopover from "./MessageActionsProvider";
-import useWebsocket from "@/hooks/useWebsocket";
-import { wsUrl } from "@/api/utils";
 
 const chatMessageSchema = z.object({
   content: z.string().min(1, {
@@ -27,19 +25,35 @@ const chatMessageSchema = z.object({
 type ChatInputParams = {
   sender_id: number;
 };
-export default function ChatInput({ sender_id }: ChatInputParams) {
+export default function ChatInput({ sender_id, websocket }: ChatInputParams) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
   const { conversationId } = useConversation();
   const { theme } = useTheme();
-  const websocket = useWebsocket({ url: `${wsUrl}/ws/${sender_id}/${conversationId}` });
+  const queryClient = useQueryClient();
 
-  // const { mutate: createMessage, pending } = useMutationState(api.message.create);
   const { mutate: sendMsg, isPending } = useMutation({
     mutationFn: ({ type, content }: { type: string; content: string }) =>
-      createMessage({ conversation_id: parseInt(conversationId), type, content, sender_id }),
+      // createMessage({ conversation_id: parseInt(conversationId), type, content, sender_id }),
+      new Promise((resolve, reject) => {
+        websocket?.send(JSON.stringify({ conversation_id: parseInt(conversationId), type, content, sender_id }));
+        if (websocket) {
+          let result = {};
+          websocket.onmessage = (event) => {
+            result = JSON.parse(event.data);
+            resolve(result);
+            queryClient.setQueryData(["messages", conversationId], (old: Message[] | undefined) => [
+              result,
+              ...(old || []),
+            ]);
+          };
+          setTimeout(() => {
+            if (Object.keys(result).length === 0) reject();
+          }, 2000);
+        }
+      }),
     onSuccess: () => {
       form.reset();
       textareaRef.current?.focus();
@@ -75,10 +89,7 @@ export default function ChatInput({ sender_id }: ChatInputParams) {
   };
 
   const handleSubmit = async (values: z.infer<typeof chatMessageSchema>) => {
-    // sendMsg({ type: "text", content: values.content });
-    websocket?.send(
-      JSON.stringify({ sender_id, conversation_id: parseInt(conversationId), content: values.content, type: "text" })
-    );
+    sendMsg({ type: "text", content: values.content });
   };
 
   useEffect(() => {
