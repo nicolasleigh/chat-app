@@ -4,7 +4,7 @@ MIGRATIONS_PATH=./migrations
 .PHONY: curl-health fmt env compose/build compose/up migrations/new migrations/up sqlc migrations/force migrations/down
 
 curl-health:
-	@curl -v http://localhost:8080/health
+	@curl -v https://localhost:8084/health
 
 fmt:
 	@go fmt ./...

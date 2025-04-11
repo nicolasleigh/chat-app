@@ -43,14 +43,21 @@ func main() {
 	slog.SetDefault(NewLog)
 
 	Validate = validator.New(validator.WithRequiredStructEnabled())
+	var dsnEnv string
+	if os.Getenv("APP_ENV") == "production" {
+		dsnEnv = os.Getenv("CLOUD_DB_DSN")
+	} else {
+		dsnEnv = os.Getenv("DB_DSN")
+	}
 
 	cfg := config{
-		port: env.GetInt("PORT", 8080),
+		port: env.GetInt("PORT", 8084),
 		db: dbConfig{
-			dsn: env.GetString("DB_DSN", "postgres://admin:adminpassword@localhost:5432/chat?sslmode=disable"),
+			// dsn: env.GetString("DB_DSN", "postgres://admin:adminpassword@localhost:5432/chat?sslmode=disable"),
+			dsn: dsnEnv,
 		},
 		cors: cors{
-			trustedOrigins: []string{"http://localhost:3000"},
+			trustedOrigins: []string{"http://localhost:3000","https://chat.linze.pro"},
 		},
 	}
 

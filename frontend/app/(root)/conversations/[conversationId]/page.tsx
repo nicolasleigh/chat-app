@@ -65,7 +65,7 @@ export default function ConversationPage({ params }: Props) {
 
   // console.log("messages", msg);
 
-  const { messages, isLoading, isError, error, websocket } = useMessagesQuery(conversationId, token);
+  const { messages, websocket } = useMessagesQuery(conversationId, token);
 
   const [removeFriendDialogOpen, setRemoveFriendDialogOpen] = useState(false);
   const [deleteGroupDialogOpen, setDeleteGroupDialogOpen] = useState(false);

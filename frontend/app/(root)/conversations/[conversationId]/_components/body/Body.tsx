@@ -26,9 +26,10 @@ type Props = {
   callType: "audio" | "video" | null;
   setCallType: Dispatch<SetStateAction<"audio" | "video" | null>>;
   currentUserId: number;
+  msg: [];
 };
 
-export default function Body({ members, callType, setCallType, currentUserId, websocket, msg: messages }: Props) {
+export default function Body({ members, callType, setCallType, currentUserId, msg: messages }: Props) {
   const { conversationId: id } = useConversation();
   const conversationId = parseInt(id);
 

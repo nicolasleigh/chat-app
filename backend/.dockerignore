@@ -1,0 +1,6 @@
+Dockerfile
+.dockerignore
+.git
+tmp
+.gitignore
+compose-local.yaml
