@@ -7,6 +7,6 @@ RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate
 RUN ln -s /go/bin/linux_amd64/migrate /usr/local/bin/migrate
 COPY .envrc .
 COPY . .
-RUN go build -v -o /usr/local/bin/app ./...
+RUN go build -o /usr/local/bin/app ./cmd/api
 EXPOSE 8084
 CMD ["app"]

@@ -57,7 +57,7 @@ func main() {
 			dsn: dsnEnv,
 		},
 		cors: cors{
-			trustedOrigins: []string{"http://localhost:3000","https://chat.linze.pro"},
+			trustedOrigins: []string{"http://localhost:3000", "https://chat.linze.pro"},
 		},
 	}
 
