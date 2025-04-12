@@ -28,3 +28,11 @@ backend/migrate/down:
 .PHONY: backend/migrate/force
 backend/migrate/force:
 	docker exec chatify-backend migrate -database ${CLOUD_DB_DSN} -path ${MIGRATIONS_PATH} force ${version}
+
+.PHONY: frontend/build
+frontend/build:
+	cd frontend && npm run build && cd ..
+
+.PHONY: frontend/send
+frontend/send:
+	cd frontend && rsync -rP dist nicolas@106.14.126.186:~/chatify/frontend/next-build && cd ..
