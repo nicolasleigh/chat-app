@@ -1,5 +1,5 @@
 include ./backend/.envrc
-MIGRATIONS_PATH=./backend/migrations
+MIGRATIONS_PATH=./migrations
 
 .PHONY: curl/health/remote
 curl/health/remote:
@@ -15,19 +15,23 @@ compose/up:
 
 .PHONY: backend/env
 backend/env:
-	direnv allow .
+	sudo docker exec chatify-backend direnv allow .
+
+.PHONY: backend/createdb
+backend/createdb:
+	sudo docker exec -it chatify-postgres createdb -U nicolas chat
 
 .PHONY: backend/migrate/up
 backend/migrate/up:
-	docker exec chatify-backend migrate -database ${CLOUD_DB_DSN} -path ${MIGRATIONS_PATH} up
+	sudo docker exec chatify-backend migrate -database ${CLOUD_DB_DSN} -path ${MIGRATIONS_PATH} up
 
 .PHONY: backend/migrate/down
 backend/migrate/down:
-	docker exec chatify-backend migrate -database ${CLOUD_DB_DSN} -path ${MIGRATIONS_PATH} down ${num}
+	sudo docker exec chatify-backend migrate -database ${CLOUD_DB_DSN} -path ${MIGRATIONS_PATH} down ${num}
 
 .PHONY: backend/migrate/force
 backend/migrate/force:
-	docker exec chatify-backend migrate -database ${CLOUD_DB_DSN} -path ${MIGRATIONS_PATH} force ${version}
+	sudo docker exec chatify-backend migrate -database ${CLOUD_DB_DSN} -path ${MIGRATIONS_PATH} force ${version}
 
 .PHONY: frontend/build
 frontend/build:

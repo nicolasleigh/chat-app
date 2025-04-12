@@ -25,6 +25,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: chatify-backend
+    env_file: "./backend/.envrc"
     environment:
       APP_ENV: production
     networks:
@@ -40,6 +41,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: chatify-frontend
+    env_file: "./frontend/.env.local"
     depends_on:
       - postgres
       - backend

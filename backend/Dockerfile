@@ -5,7 +5,10 @@ RUN go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 RUN go mod download
 RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 RUN ln -s /go/bin/linux_amd64/migrate /usr/local/bin/migrate
-COPY .envrc .
+# RUN apk add --no-cache direnv
+# RUN ln -s /etc/apk/repositories/direnv /usr/local/bin/direnv
+# COPY .envrc .
+# RUN direnv allow .
 COPY . .
 RUN go build -o /usr/local/bin/app ./cmd/api
 EXPOSE 8084
