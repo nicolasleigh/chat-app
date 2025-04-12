@@ -1,6 +1,6 @@
 chat.linze.pro {
   reverse_proxy localhost:3000
-  handle /api/* {
-    reverse_proxy localhost:8084
-  }
+}
+back.chat.linze.pro {
+  reverse_proxy localhost:8084
 }

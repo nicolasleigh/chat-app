@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     case "user.updated":
       console.log("Creating/Updating User:", evt.data.id);
 
-      await fetch("https://chat.linze.pro/api/user", {
+      await fetch("https://back.chat.linze.pro/user", {
         method: "POST",
         body: JSON.stringify({
           username: `${evt.data.first_name} ${evt.data.last_name}`,

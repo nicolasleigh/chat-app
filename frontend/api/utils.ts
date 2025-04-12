@@ -1,9 +1,9 @@
-let baseUrl = "http://localhost:8084/api";
-let wsUrl = "ws://localhost:8084/api";
+let baseUrl = "http://localhost:8084";
+let wsUrl = "ws://localhost:8084";
 
 if (process.env.NODE_ENV === "production") {
-  baseUrl = "https://chat.linze.pro/api";
-  wsUrl = "wss://chat.linze.pro/api";
+  baseUrl = "https://back.chat.linze.pro";
+  wsUrl = "wss://back.chat.linze.pro";
 }
 
 export { baseUrl, wsUrl };
