@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  distDir: "dist",
+  // distDir: "dist",
   output: "standalone",
   images: {
     domains: ["img.clerk.com", "utfs.io"],
